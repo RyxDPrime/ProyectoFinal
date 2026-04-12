@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .dashboard-filters {
+      display: grid;
+      gap: 14px;
+    }
+
+    .dashboard-filters .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .dashboard-filters .filter-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .dashboard-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+    }
+
+    .dashboard-stat .label {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-faint);
+      margin-bottom: 8px;
+    }
+
+    .dashboard-stat .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .dashboard-stat .hint {
+      margin-top: 4px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .dashboard-chart {
+      min-height: 460px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      min-height: 340px;
+    }
+
+    .chart-empty {
+      display: none;
+      position: absolute;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-lg);
+      color: var(--text-muted);
+      font-family: var(--font-mono), monospace;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .legend-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .legend-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .legend-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .legend-subtitle {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.68rem;
+      color: var(--text-faint);
+    }
+
+    .filter-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .filter-check input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .dashboard-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-filters .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+  <header class="topbar">
+    <div class="topbar-brand"><div class="accent-dot"></div>ENCUESTA_PUCMM</div>
+    <div class="topbar-right">
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">En línea</span>
+      </div>
+      <div class="topbar-user">
+        <span id="topbar-nombre">—</span>
+        <span class="role-badge" id="topbar-rol">—</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-label" data-feature="captura">Captura</div>
+    <div class="nav-section" data-feature="captura">
+      <a href="/encuesta" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Nueva encuesta
+      </a>
+      <a href="/bandeja" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+        Bandeja de salida
+        <span class="nav-badge zero" id="nav-badge-pending">0</span>
+      </a>
+    </div>
+
+    <div class="nav-section-label">Reportes</div>
+    <div class="nav-section">
+      <a href="/listado" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Listado general
+      </a>
+      <a href="/dashboard" class="nav-link active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+        Dashboard
+      </a>
+      <a href="/mapa" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Mapa
+      </a>
+    </div>
+
+    <div class="nav-section-label" id="nav-admin-label" data-feature="admin" style="display:none">Administración</div>
+    <div class="nav-section" id="nav-admin-section" data-feature="admin" style="display:none">
+      <a href="/usuarios" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </a>
+    </div>
+  </nav>
+
+  <main class="main-content page-enter">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Dashboard</h1>
+        <p>Gráfico pastel por niveles escolares con filtros sobre los datos ya capturados.</p>
+      </div>
+      <button class="btn btn-secondary" onclick="cargarDashboard()">↻ Actualizar</button>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="dashboard-stat">
+        <div class="label">Total filtrado</div>
+        <div class="value" id="stat-total">—</div>
+        <div class="hint" id="stat-total-hint">Encuestas visibles</div>
+      </div>
+      <div class="dashboard-stat">
+        <div class="label">Nivel principal</div>
+        <div class="value accent" id="stat-principal">—</div>
+        <div class="hint" id="stat-principal-hint">Mayor frecuencia</div>
+      </div>
+      <div class="dashboard-stat">
+        <div class="label">Con foto</div>
+        <div class="value success" id="stat-foto">—</div>
+        <div class="hint">En el subconjunto filtrado</div>
+      </div>
+      <div class="dashboard-stat">
+        <div class="label">Con GPS</div>
+        <div class="value warning" id="stat-gps">—</div>
+        <div class="hint">En el subconjunto filtrado</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <div class="card-title">Filtros</div>
+        <div class="dashboard-filters">
+          <div class="form-group">
+            <label>Buscar por nombre o sector</label>
+            <label for="filtro-texto"></label><input type="text" id="filtro-texto" placeholder="Ej. María o Santiago" oninput="renderDashboard()" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Género</label>
+              <label for="filtro-genero"></label><select id="filtro-genero" onchange="renderDashboard()">
+                <option value="">Todos</option>
+                <option value="MASCULINO">Masculino</option>
+                <option value="FEMENINO">Femenino</option>
+                <option value="NO_BINARIO">No binario</option>
+                <option value="PREFIERO_NO_DECIR">Prefiero no decir</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tipo de escuela</label>
+              <label for="filtro-tipo-escuela"></label><select id="filtro-tipo-escuela" onchange="renderDashboard()">
+                <option value="">Todos</option>
+                <option value="PUBLICO">Público</option>
+                <option value="PRIVADO">Privado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Estado de estudio</label>
+              <label for="filtro-estado-estudio"></label><select id="filtro-estado-estudio" onchange="renderDashboard()">
+                <option value="">Todos</option>
+                <option value="EN_CURSO">En curso</option>
+                <option value="COMPLETO">Completo</option>
+                <option value="POSPUESTO">Pospuesto</option>
+                <option value="RETIRADO">Retirado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Rango de edad</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <input type="number" id="filtro-edad-min" min="0" placeholder="Mín." oninput="renderDashboard()" />
+                <input type="number" id="filtro-edad-max" min="0" placeholder="Máx." oninput="renderDashboard()" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="filter-check">
+              <input type="checkbox" id="filtro-con-foto" onchange="renderDashboard()" />
+              Solo con foto
+            </label>
+            <label class="filter-check">
+              <input type="checkbox" id="filtro-con-gps" onchange="renderDashboard()" />
+              Solo con GPS
+            </label>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn btn-ghost" type="button" onclick="limpiarFiltros()">Limpiar filtros</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card dashboard-chart">
+        <div class="card-title">Distribución por niveles escolares</div>
+        <div class="chart-wrap">
+          <canvas id="niveles-chart"></canvas>
+          <div class="chart-empty" id="chart-empty">No hay encuestas que coincidan con los filtros</div>
+        </div>
+        <div class="legend-grid" id="legend-grid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+  const byId = id => document.getElementById(id);
+  const usuario = Auth.getUsuario() || {};
+  const levelLabels = {
+    BASICO: 'Básico',
+    MEDIO: 'Medio',
+    GRADO_UNIVERSITARIO: 'Universitario',
+    POSTGRADO: 'Postgrado',
+    DOCTORADO: 'Doctorado'
+  };
+  const levelOrder = ['BASICO', 'MEDIO', 'GRADO_UNIVERSITARIO', 'POSTGRADO', 'DOCTORADO'];
+  const levelColors = ['#22c55e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
+
+  let todasEncuestas = [];
+  let chart = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth.requerirAuth();
+    Auth.requerirAccesoRuta();
+
+    byId('topbar-nombre').textContent = usuario.nombre || usuario.email || '—';
+    byId('topbar-rol').textContent = usuario.rol || '—';
+
+    if (usuario.rol === 'ADMIN') {
+      byId('nav-admin-label').style.display = '';
+      byId('nav-admin-section').style.display = '';
+    }
+
+    Auth.aplicarVisibilidadPorRol();
+
+    actualizarConexion();
+    actualizarBadgePendientes();
+
+    window.addEventListener('enc-pendientes-changed', actualizarBadgePendientes);
+    window.addEventListener('online', actualizarConexion);
+    window.addEventListener('offline', actualizarConexion);
+
+    cargarDashboard();
+  });
+
+  function actualizarConexion() {
+    const online = navigator.onLine;
+    byId('conn-dot').classList.toggle('offline', !online);
+    byId('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
+  }
+
+  function actualizarBadgePendientes() {
+    const pendientes = OfflineDB.contarPendientes();
+    const badge = byId('nav-badge-pending');
+    badge.textContent = pendientes;
+    badge.className = 'nav-badge' + (pendientes === 0 ? ' zero' : '');
+  }
+
+  async function cargarDashboard() {
+    try {
+      todasEncuestas = await API.get('/api/encuestas');
+      renderDashboard();
+    } catch (err) {
+      toast('Error cargando el dashboard: ' + err.message, 'error');
+    }
+  }
+
+  function normalizar(valor) {
+    return (valor ?? '').toString().trim().toLowerCase();
+  }
+
+  function getEncuestasFiltradas() {
+    const texto = normalizar(byId('filtro-texto').value);
+    const genero = byId('filtro-genero').value;
+    const tipoEscuela = byId('filtro-tipo-escuela').value;
+    const estadoEstudio = byId('filtro-estado-estudio').value;
+    const edadMin = byId('filtro-edad-min').value ? Number(byId('filtro-edad-min').value) : null;
+    const edadMax = byId('filtro-edad-max').value ? Number(byId('filtro-edad-max').value) : null;
+    const soloFoto = byId('filtro-con-foto').checked;
+    const soloGps = byId('filtro-con-gps').checked;
+
+    return todasEncuestas.filter(e => {
+      const edad = Number(e.edad);
+      const coincideTexto = !texto || normalizar(e.nombre).includes(texto) || normalizar(e.sector).includes(texto);
+      const coincideGenero = !genero || e.genero === genero;
+      const coincideEscuela = !tipoEscuela || e.tipoEscuela === tipoEscuela;
+      const coincideEstado = !estadoEstudio || e.estadoEstudio === estadoEstudio;
+      const coincideEdadMin = edadMin == null || (!Number.isNaN(edad) && edad >= edadMin);
+      const coincideEdadMax = edadMax == null || (!Number.isNaN(edad) && edad <= edadMax);
+      const coincideFoto = !soloFoto || !!e.fotoBase64;
+      const coincideGps = !soloGps || (e.latitud != null && e.longitud != null);
+      return coincideTexto && coincideGenero && coincideEscuela && coincideEstado && coincideEdadMin && coincideEdadMax && coincideFoto && coincideGps;
+    });
+  }
+
+  function contarNiveles(encuestas) {
+    const counts = Object.fromEntries(levelOrder.map(k => [k, 0]));
+    encuestas.forEach(e => {
+      if (counts[e.nivelEscolar] != null) counts[e.nivelEscolar] += 1;
+    });
+    return counts;
+  }
+
+  function renderChart(encuestas) {
+    const counts = contarNiveles(encuestas);
+    const labels = levelOrder.map(k => levelLabels[k]);
+    const data = levelOrder.map(k => counts[k]);
+    const total = data.reduce((sum, value) => sum + value, 0);
+
+    byId('chart-empty').style.display = total === 0 ? 'flex' : 'none';
+
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+
+    if (total === 0) {
+      byId('legend-grid').innerHTML = '';
+      return;
+    }
+
+    chart = new Chart(byId('niveles-chart'), {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: levelColors,
+          borderColor: 'rgba(18, 18, 18, 1)',
+          borderWidth: 2,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              color: getComputedStyle(document.documentElement).getPropertyValue('--text') || '#e5e7eb',
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 18,
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: context => {
+                const value = context.raw || 0;
+                const pct = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                return ` ${context.label}: ${value} (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const legendHtml = levelOrder.map((key, idx) => {
+      const value = counts[key];
+      const pct = total ? ((value / total) * 100).toFixed(1) : '0.0';
+      return `
+        <div class="legend-item">
+          <span class="legend-swatch" style="background:${levelColors[idx]}"></span>
+          <div class="legend-text">
+            <div class="legend-title">${levelLabels[key]}</div>
+            <div class="legend-subtitle">${value} encuesta(s) · ${pct}%</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    byId('legend-grid').innerHTML = legendHtml;
+  }
+
+  function renderDashboard() {
+    const filtradas = getEncuestasFiltradas();
+    const counts = contarNiveles(filtradas);
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const top = entries.find(([, value]) => value > 0);
+    const total = filtradas.length;
+    const foto = filtradas.filter(e => e.fotoBase64).length;
+    const gps = filtradas.filter(e => e.latitud != null && e.longitud != null).length;
+
+    byId('stat-total').textContent = total;
+    byId('stat-foto').textContent = foto;
+    byId('stat-gps').textContent = gps;
+    byId('stat-principal').textContent = top ? levelLabels[top[0]] : '—';
+    byId('stat-principal-hint').textContent = top ? `${top[1]} encuesta(s)` : 'Sin datos';
+
+    renderChart(filtradas);
+  }
+
+  function limpiarFiltros() {
+    byId('filtro-texto').value = '';
+    byId('filtro-genero').value = '';
+    byId('filtro-tipo-escuela').value = '';
+    byId('filtro-estado-estudio').value = '';
+    byId('filtro-edad-min').value = '';
+    byId('filtro-edad-max').value = '';
+    byId('filtro-con-foto').checked = false;
+    byId('filtro-con-gps').checked = false;
+    renderDashboard();
+  }
+
+  // La actualización del dashboard queda manual para evitar reinicios frecuentes del gráfico.
+</script>
+</body>
+</html>
+

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Cliente gRPC</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .grpc-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+
+    .grpc-sidebar {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .grpc-main {
+      padding: 24px;
+    }
+
+    .proto-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(139,92,246,0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: var(--radius);
+      font-family: var(--font-mono), monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+    }
+
+    .rpc-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .rpc-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .rpc-name {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    .rpc-signature {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .rpc-body { padding: 20px; }
+
+    .proto-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: var(--font-mono), monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      white-space: pre;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .proto-block .kw    { color: #a78bfa; }
+    .proto-block .type  { color: #60a5fa; }
+    .proto-block .field { color: var(--accent); }
+    .proto-block .cmt   { color: var(--text-faint); }
+
+    .response-grpc {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      font-family: var(--font-mono), monospace;
+      font-size: 0.72rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 80px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .grpc-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-family: var(--font-mono), monospace;
+      font-size: 0.7rem;
+    }
+
+    .grpc-ok  { color: #a78bfa; }
+    .grpc-err { color: var(--danger); }
+
+    .timing {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.65rem;
+      color: var(--text-faint);
+    }
+
+    .proxy-warning {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 0.78rem;
+      color: var(--warning);
+      margin-bottom: 20px;
+    }
+
+    .proxy-warning strong { font-family: var(--font-mono), monospace; }
+  </style>
+</head>
+<body style="background:var(--bg)">
+
+<div class="grpc-layout">
+
+  <!-- Sidebar -->
+  <aside class="grpc-sidebar">
+
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span class="proto-badge">gRPC-Web</span>
+      </div>
+      <h2 style="font-size:1.1rem;margin-bottom:4px">Cliente gRPC</h2>
+      <p style="font-size:0.78rem">Interfaz que consume el servicio gRPC vía proxy Envoy + gRPC-Web.</p>
+    </div>
+
+    <hr class="divider" style="margin:0" />
+
+    <!-- Config proxy -->
+    <div>
+      <div class="card-title">Configuración del proxy</div>
+      <div class="form-group">
+        <label for="proxy-url">URL del proxy Envoy</label>
+        <input type="text" id="proxy-url" value="http://localhost:8080" />
+        <div class="form-hint">Envoy traduce gRPC-Web → gRPC nativo</div>
+      </div>
+    </div>
+
+    <hr class="divider" style="margin:0" />
+
+    <!-- Autenticación -->
+    <div>
+      <div class="card-title">Token JWT</div>
+      <div class="form-group">
+        <label for="grpc-email">Email</label>
+        <input type="email" id="grpc-email" placeholder="usuario@pucmm.edu.do" />
+      </div>
+      <div class="form-group">
+        <label for="grpc-pwd">Contraseña</label>
+        <input type="password" id="grpc-pwd" placeholder="Tu contraseña" />
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-grpc-auth" onclick="autenticarGrpc()">
+        <span class="spinner"></span>
+        <span class="btn-text">Obtener token</span>
+      </button>
+      <div style="margin-top:10px">
+        <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);margin-bottom:4px">Token activo</div>
+        <div class="token-display" id="grpc-token-display" style="
+          background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);
+          padding:8px 10px;font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-muted);
+          word-break:break-all;max-height:52px;overflow:hidden">
+          Sin token
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" style="margin:0" />
+
+    <!-- ID usuario -->
+    <div>
+      <div class="card-title">Usuario activo</div>
+      <div class="form-group">
+        <label for="grpc-usuario-id">ID de usuario</label>
+        <input type="text" id="grpc-usuario-id" placeholder="Se llena al autenticar" />
+        <div class="form-hint">Necesario para ListarPorUsuario</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto">
+      <a href="/encuesta" class="btn btn-ghost btn-full btn-sm">← Volver al sistema</a>
+    </div>
+
+  </aside>
+
+  <!-- Main -->
+  <main class="grpc-main">
+
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Servicio EncuestaService</h1>
+        <p>Operaciones gRPC disponibles según el contrato .proto del proyecto.</p>
+      </div>
+    </div>
+
+    <!-- Aviso proxy -->
+    <div class="proxy-warning">
+      ⚠️ <strong>Requiere proxy Envoy corriendo</strong> en la URL configurada.<br />
+      Ejecuta: <strong>docker-compose up envoy</strong> para levantar el proxy gRPC-Web.
+      El servidor gRPC de Javalin corre en el puerto <strong>9090</strong>.
+    </div>
+
+    <!-- Definición proto -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Contrato .proto</div>
+      <div class="proto-block"><span class="kw">syntax</span> = <span class="field">"proto3"</span>;
+
+        <span class="kw">package</span> edu.pucmm.eict.main.grpc;
+
+        <span class="kw">service</span> <span class="type">EncuestaService</span> {
+        <span class="kw">rpc</span> <span class="field">ListarPorUsuario</span> (<span class="type">UsuarioRequest</span>)  <span class="kw">returns</span> (<span class="type">EncuestaListResponse</span>);
+        <span class="kw">rpc</span> <span class="field">CrearEncuesta</span>    (<span class="type">EncuestaRequest</span>) <span class="kw">returns</span> (<span class="type">EncuestaResponse</span>);
+        }
+
+        <span class="kw">message</span> <span class="type">UsuarioRequest</span>  { <span class="type">string</span> <span class="field">usuarioId</span> = 1; }
+
+        <span class="kw">message</span> <span class="type">EncuestaRequest</span> {
+        <span class="type">string</span> <span class="field">usuarioId</span>    = 1;
+        <span class="type">string</span> <span class="field">nombre</span>       = 2;
+        <span class="type">string</span> <span class="field">sector</span>       = 3;
+        <span class="type">string</span> <span class="field">nivelEscolar</span> = 4;
+        <span class="type">double</span> <span class="field">latitud</span>      = 5;
+        <span class="type">double</span> <span class="field">longitud</span>     = 6;
+        <span class="type">int32</span> <span class="field">edad</span>         = 7;
+        <span class="type">string</span> <span class="field">genero</span>       = 8;
+        <span class="type">string</span> <span class="field">tipoEscuela</span>  = 9;
+        <span class="type">string</span> <span class="field">estadoEstudio</span> = 10;
+        }
+
+        <span class="kw">message</span> <span class="type">EncuestaResponse</span> {
+        <span class="type">string</span> <span class="field">id</span>           = 1;
+        <span class="type">string</span> <span class="field">nombre</span>       = 2;
+        <span class="type">string</span> <span class="field">sector</span>       = 3;
+        <span class="type">string</span> <span class="field">nivelEscolar</span> = 4;
+        <span class="type">double</span> <span class="field">latitud</span>      = 5;
+        <span class="type">double</span> <span class="field">longitud</span>     = 6;
+        <span class="type">string</span> <span class="field">usuarioId</span>    = 7;
+        <span class="type">string</span> <span class="field">creadoEn</span>     = 8;
+        <span class="type">int32</span> <span class="field">edad</span>         = 9;
+        <span class="type">string</span> <span class="field">genero</span>       = 10;
+        <span class="type">string</span> <span class="field">tipoEscuela</span>  = 11;
+        <span class="type">string</span> <span class="field">estadoEstudio</span> = 12;
+        }
+
+        <span class="kw">message</span> <span class="type">EncuestaListResponse</span> {
+        <span class="kw">repeated</span> <span class="type">EncuestaResponse</span> <span class="field">encuestas</span> = 1;
+        }</div>
+    </div>
+
+    <!-- RPC 1: ListarPorUsuario -->
+    <div class="rpc-card">
+      <div class="rpc-header">
+        <div>
+          <div class="rpc-name">ListarPorUsuario</div>
+          <div class="rpc-signature">rpc ListarPorUsuario(UsuarioRequest) → EncuestaListResponse</div>
+        </div>
+        <span class="proto-badge" style="margin-left:auto">Unary</span>
+      </div>
+      <div class="rpc-body">
+        <div class="form-group">
+          <label for="listar-uid">usuarioId (field 1)</label>
+          <input type="text" id="listar-uid" placeholder="ObjectId del usuario" />
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-listar" onclick="ejecutarListar()">
+          <span class="spinner"></span>
+          <span class="btn-text">▶ Llamar ListarPorUsuario</span>
+        </button>
+        <div style="margin-top:16px">
+          <div class="grpc-status" id="status-listar" style="display:none"></div>
+          <div class="response-grpc" id="res-listar">Esperando llamada...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RPC 2: CrearEncuesta -->
+    <div class="rpc-card" style="margin-bottom:40px">
+      <div class="rpc-header">
+        <div>
+          <div class="rpc-name">CrearEncuesta</div>
+          <div class="rpc-signature">rpc CrearEncuesta(EncuestaRequest) → EncuestaResponse</div>
+        </div>
+        <span class="proto-badge" style="margin-left:auto">Unary</span>
+      </div>
+      <div class="rpc-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="crear-nombre">nombre (field 2)</label>
+            <input type="text" id="crear-nombre" placeholder="Nombre del encuestado" value="Juan Pérez (gRPC)" />
+          </div>
+          <div class="form-group">
+            <label for="crear-sector">sector (field 3)</label>
+            <input type="text" id="crear-sector" placeholder="Sector" value="La Trinitaria, SD" />
+          </div>
+          <div class="form-group">
+            <label for="crear-nivel">nivelEscolar (field 4)</label>
+            <select id="crear-nivel">
+              <option value="BASICO">Básico</option>
+              <option value="MEDIO">Medio</option>
+              <option value="GRADO_UNIVERSITARIO" selected>Grado Universitario</option>
+              <option value="POSTGRADO">Postgrado</option>
+              <option value="DOCTORADO">Doctorado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crear-edad">edad (field 7)</label>
+            <input type="number" id="crear-edad" min="1" max="120" step="1" value="18" />
+          </div>
+          <div class="form-group">
+            <label for="crear-genero">genero (field 8)</label>
+            <select id="crear-genero">
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO" selected>Femenino</option>
+              <option value="NO_BINARIO">No binario</option>
+              <option value="PREFIERO_NO_DECIR">Prefiero no decir</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crear-tipo-escuela">tipoEscuela (field 9)</label>
+            <select id="crear-tipo-escuela">
+              <option value="PUBLICO" selected>Público</option>
+              <option value="PRIVADO">Privado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crear-estado-estudio">estadoEstudio (field 10)</label>
+            <select id="crear-estado-estudio">
+              <option value="EN_CURSO" selected>En curso</option>
+              <option value="COMPLETO">Completo</option>
+              <option value="POSPUESTO">Pospuesto</option>
+              <option value="RETIRADO">Retirado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="crear-uid">usuarioId (field 1)</label>
+            <input type="text" id="crear-uid" placeholder="ObjectId del usuario" />
+          </div>
+          <div class="form-group">
+            <label for="crear-lat">latitud (field 5)</label>
+            <input type="number" id="crear-lat" step="0.000001" value="18.4861" />
+          </div>
+          <div class="form-group">
+            <label for="crear-lng">longitud (field 6)</label>
+            <input type="number" id="crear-lng" step="0.000001" value="-69.9312" />
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-crear-grpc" onclick="ejecutarCrear()">
+          <span class="spinner"></span>
+          <span class="btn-text">▶ Llamar CrearEncuesta</span>
+        </button>
+        <div style="margin-top:16px">
+          <div class="grpc-status" id="status-crear" style="display:none"></div>
+          <div class="response-grpc" id="res-crear">Esperando llamada...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script src="/js/encuesta_grpc.js"></script>
+<script>
+  let tokenGrpc = null;
+
+  // Pre-cargar sesión existente
+  if (Auth.estaAutenticado()) {
+    tokenGrpc = Auth.getToken();
+    const u = Auth.getUsuario();
+    mostrarTokenGrpc(tokenGrpc);
+    if (u?.usuarioId) {
+      document.getElementById('grpc-usuario-id').value = u.usuarioId;
+      document.getElementById('listar-uid').value       = u.usuarioId;
+      document.getElementById('crear-uid').value        = u.usuarioId;
+    }
+  }
+
+  function getCliente() {
+    const url = document.getElementById('proxy-url').value.trim();
+    return new EncuestaGrpcClient(url);
+  }
+
+  async function autenticarGrpc() {
+    const btn = document.getElementById('btn-grpc-auth');
+    btn.classList.add('loading'); btn.disabled = true;
+    try {
+      const email = document.getElementById('grpc-email').value.trim();
+      const pwd   = document.getElementById('grpc-pwd').value;
+      await Auth.login(email, pwd);
+      tokenGrpc = Auth.getToken();
+      const u = Auth.getUsuario();
+      mostrarTokenGrpc(tokenGrpc);
+      if (u?.usuarioId) {
+        document.getElementById('grpc-usuario-id').value = u.usuarioId;
+        document.getElementById('listar-uid').value       = u.usuarioId;
+        document.getElementById('crear-uid').value        = u.usuarioId;
+      }
+      toast('Token obtenido correctamente', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  function mostrarTokenGrpc(token) {
+    document.getElementById('grpc-token-display').textContent =
+            token ? token.substring(0, 50) + '...' : 'Sin token';
+  }
+
+  function verificarToken() {
+    if (!tokenGrpc) {
+      toast('Obtén un token JWT primero', 'warning');
+      return false;
+    }
+    return true;
+  }
+
+  // ── Ejecutar ListarPorUsuario ─────────────────────────────────
+  async function ejecutarListar() {
+    if (!verificarToken()) return;
+
+    const uid = document.getElementById('listar-uid').value.trim();
+    if (!uid) { toast('Introduce el ID de usuario', 'warning'); return; }
+
+    const btn = document.getElementById('btn-listar');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const statusEl = document.getElementById('status-listar');
+    const resEl    = document.getElementById('res-listar');
+    statusEl.style.display = 'none';
+    resEl.textContent = 'Llamando a ListarPorUsuario...';
+
+    const inicio = Date.now();
+    try {
+      const cliente  = getCliente();
+      const resultado = await cliente.listarPorUsuario(uid, tokenGrpc);
+      const ms = Date.now() - inicio;
+
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `
+        <span class="grpc-ok">● OK</span>
+        <span class="timing">${ms}ms</span>
+        <span class="timing">· gRPC Status: 0 (OK)</span>`;
+
+      resEl.textContent = JSON.stringify(resultado, null, 2);
+      toast('ListarPorUsuario ejecutado', 'success');
+    } catch (err) {
+      const ms = Date.now() - inicio;
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `<span class="grpc-err">● ERROR</span><span class="timing">${ms}ms</span>`;
+      resEl.textContent = 'Error: ' + err.message +
+              '\n\n¿El proxy Envoy está corriendo en ' + document.getElementById('proxy-url').value + '?';
+      toast('Error gRPC: ' + err.message, 'error');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  // ── Ejecutar CrearEncuesta ────────────────────────────────────
+  async function ejecutarCrear() {
+    if (!verificarToken()) return;
+
+    const encuesta = {
+      usuarioId:    document.getElementById('crear-uid').value.trim(),
+      nombre:       document.getElementById('crear-nombre').value.trim(),
+      sector:       document.getElementById('crear-sector').value.trim(),
+      nivelEscolar: document.getElementById('crear-nivel').value,
+      edad:         parseInt(document.getElementById('crear-edad').value, 10),
+      genero:       document.getElementById('crear-genero').value,
+      tipoEscuela:  document.getElementById('crear-tipo-escuela').value,
+      estadoEstudio:document.getElementById('crear-estado-estudio').value,
+      latitud:      parseFloat(document.getElementById('crear-lat').value),
+      longitud:     parseFloat(document.getElementById('crear-lng').value),
+    };
+
+    if (!encuesta.usuarioId || !encuesta.nombre || !encuesta.sector) {
+      toast('Completa los campos requeridos', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-crear-grpc');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    const statusEl = document.getElementById('status-crear');
+    const resEl    = document.getElementById('res-crear');
+    statusEl.style.display = 'none';
+    resEl.textContent = 'Llamando a CrearEncuesta...';
+
+    const inicio = Date.now();
+    try {
+      const cliente   = getCliente();
+      const resultado = await cliente.crearEncuesta(encuesta, tokenGrpc);
+      const ms = Date.now() - inicio;
+
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `
+        <span class="grpc-ok">● OK</span>
+        <span class="timing">${ms}ms</span>
+        <span class="timing">· gRPC Status: 0 (OK)</span>`;
+
+      resEl.textContent = JSON.stringify(resultado, null, 2);
+      toast('CrearEncuesta ejecutado', 'success');
+    } catch (err) {
+      const ms = Date.now() - inicio;
+      statusEl.style.display = 'flex';
+      statusEl.innerHTML = `<span class="grpc-err">● ERROR</span><span class="timing">${ms}ms</span>`;
+      resEl.textContent = 'Error: ' + err.message +
+              '\n\n¿El proxy Envoy está corriendo en ' + document.getElementById('proxy-url').value + '?';
+      toast('Error gRPC: ' + err.message, 'error');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

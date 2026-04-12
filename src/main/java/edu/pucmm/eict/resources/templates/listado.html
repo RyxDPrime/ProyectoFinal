@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Listado general</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="app-layout">
+
+  <header class="topbar">
+    <div class="topbar-brand"><div class="accent-dot"></div>ENCUESTA_PUCMM</div>
+    <div class="topbar-right">
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">En línea</span>
+      </div>
+      <div class="topbar-user">
+        <span id="topbar-nombre">—</span>
+        <span class="role-badge" id="topbar-rol">—</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-label" data-feature="captura">Captura</div>
+    <div class="nav-section" data-feature="captura">
+      <a href="/encuesta" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Nueva encuesta
+      </a>
+      <a href="/bandeja" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+        Bandeja de salida
+        <span class="nav-badge zero" id="nav-badge-pending">0</span>
+      </a>
+    </div>
+    <div class="nav-section-label">Reportes</div>
+    <div class="nav-section">
+      <a href="/listado" class="nav-link active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Listado general
+      </a>
+      <a href="/dashboard" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+        Dashboard
+      </a>
+      <a href="/mapa" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Mapa
+      </a>
+    </div>
+    <div class="nav-section-label" id="nav-admin-label" data-feature="admin" style="display:none">Administración</div>
+    <div class="nav-section" id="nav-admin-section" data-feature="admin" style="display:none">
+      <a href="/usuarios" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </a>
+    </div>
+  </nav>
+
+  <main class="main-content page-enter">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Listado general</h1>
+        <p>Encuestas recibidas y sincronizadas en el servidor.</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <label for="filtro-texto"></label><input type="text" id="filtro-texto" placeholder="Buscar por nombre o sector..." style="width:240px" oninput="filtrar()" />
+        <label for="filtro-nivel"></label><select id="filtro-nivel" style="width:160px" onchange="filtrar()">
+          <option value="">Todos los niveles</option>
+          <option value="BASICO">Básico</option>
+          <option value="MEDIO">Medio</option>
+          <option value="GRADO_UNIVERSITARIO">Universitario</option>
+          <option value="POSTGRADO">Postgrado</option>
+          <option value="DOCTORADO">Doctorado</option>
+        </select>
+        <button class="btn btn-secondary" onclick="cargarEncuestas()">↻</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total registros</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Con foto</div>
+        <div class="stat-value accent" id="stat-foto">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Con GPS</div>
+        <div class="stat-value success" id="stat-gps">—</div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card" style="padding:0; overflow:hidden">
+      <div id="tabla-container">
+        <div class="empty-state">
+          <div class="empty-icon">⟳</div>
+          Cargando encuestas...
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal detalle -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3>// Detalle de encuesta</h3>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarDetalle()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-detalle-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarDetalle()">Cerrar</button>
+      <button class="btn btn-danger btn-sm" id="btn-eliminar-modal" onclick="eliminarDesdeModal()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+  console.log('[listado] normalizarIdMongo disponible:', typeof normalizarIdMongo);
+
+  Auth.requerirAuth();
+  Auth.requerirAccesoRuta();
+
+  const usuario = Auth.getUsuario();
+  document.getElementById('topbar-nombre').textContent = usuario.nombre || usuario.email;
+  document.getElementById('topbar-rol').textContent    = usuario.rol;
+  if (usuario.rol === 'ADMIN') {
+    document.getElementById('nav-admin-label').style.display = '';
+    document.getElementById('nav-admin-section').style.display = '';
+  }
+  Auth.aplicarVisibilidadPorRol();
+  // Solo ADMIN puede eliminar
+  if (usuario.rol !== 'ADMIN') {
+    document.getElementById('btn-eliminar-modal').style.display = 'none';
+  }
+
+  let todasEncuestas = [];
+  let encuestasEnVista = [];
+  let encuestaSeleccionada = null;
+  let recargaTimer = null;
+  let refreshTimer = null;
+
+  const nivelLabel = {
+    BASICO: 'Básico', MEDIO: 'Medio', GRADO_UNIVERSITARIO: 'Universitario',
+    POSTGRADO: 'Postgrado', DOCTORADO: 'Doctorado'
+  };
+
+  const generoLabel = {
+    MASCULINO: 'Masculino',
+    FEMENINO: 'Femenino',
+    NO_BINARIO: 'No binario',
+    PREFIERO_NO_DECIR: 'Prefiero no decir'
+  };
+
+  const tipoEscuelaLabel = { PUBLICO: 'Público', PRIVADO: 'Privado' };
+  const estadoEstudioLabel = {
+    EN_CURSO: 'En curso',
+    COMPLETO: 'Completo',
+    POSPUESTO: 'Pospuesto',
+    RETIRADO: 'Retirado'
+  };
+
+  const nivelBadgeColor = {
+    BASICO: '#22c55e',
+    MEDIO: '#3b82f6',
+    GRADO_UNIVERSITARIO: '#8b5cf6',
+    POSTGRADO: '#f59e0b',
+    DOCTORADO: '#ef4444'
+  };
+
+  const escuelaBadgeColor = {
+    PUBLICO: '#14b8a6',
+    PRIVADO: '#7c3aed'
+  };
+
+  const estadoBadgeColor = {
+    EN_CURSO: '#16a34a',
+    COMPLETO: '#2563eb',
+    POSPUESTO: '#d97706',
+    RETIRADO: '#dc2626'
+  };
+
+  function badgeHtml(label, color) {
+    return `<span class="badge" style="background:${color}; color:#fff; border:1px solid color-mix(in srgb, ${color} 70%, #000 30%);">${escapeHtml(label)}</span>`;
+  }
+
+  function googleMapsUrl(lat, lng) {
+    return `https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;
+  }
+
+  async function cargarEncuestas() {
+    try {
+      todasEncuestas = await API.get('/api/encuestas');
+      actualizarStats();
+      renderTabla(todasEncuestas);
+    } catch (err) {
+      toast('Error cargando encuestas: ' + err.message, 'error');
+    }
+  }
+
+  function actualizarStats() {
+    document.getElementById('stat-total').textContent = todasEncuestas.length;
+    document.getElementById('stat-foto').textContent  = todasEncuestas.filter(e => e.fotoBase64).length;
+    document.getElementById('stat-gps').textContent   = todasEncuestas.filter(e => e.latitud).length;
+  }
+
+  function filtrar() {
+    const texto = document.getElementById('filtro-texto').value.toLowerCase();
+    const nivel = document.getElementById('filtro-nivel').value;
+    const filtradas = todasEncuestas.filter(e =>
+            (!texto || e.nombre?.toLowerCase().includes(texto) || e.sector?.toLowerCase().includes(texto)) &&
+            (!nivel || e.nivelEscolar === nivel)
+    );
+    renderTabla(filtradas);
+  }
+
+  function renderTabla(encuestas) {
+    encuestasEnVista = encuestas;
+    const container = document.getElementById('tabla-container');
+
+    if (encuestas.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">∅</div>No se encontraron encuestas</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="table-wrapper" style="border:none; border-radius:0">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Sector</th>
+              <th>Nivel</th>
+              <th>Escuela</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${encuestas.map((e, i) => `
+              <tr>
+                <td class="td-mono">${i + 1}</td>
+                <td><strong>${escapeHtml(e.nombre || '—')}</strong></td>
+                <td>${escapeHtml(e.sector || '—')}</td>
+                <td>${badgeHtml(nivelLabel[e.nivelEscolar] || e.nivelEscolar || '—', nivelBadgeColor[e.nivelEscolar] || '#64748b')}</td>
+                <td>${badgeHtml(tipoEscuelaLabel[e.tipoEscuela] || e.tipoEscuela || '—', escuelaBadgeColor[e.tipoEscuela] || '#64748b')}</td>
+                <td>${badgeHtml(estadoEstudioLabel[e.estadoEstudio] || e.estadoEstudio || '—', estadoBadgeColor[e.estadoEstudio] || '#64748b')}</td>
+                <td class="td-mono">${e.creadoEn ? new Date(e.creadoEn).toLocaleDateString('es-DO') : '—'}</td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" onclick="verDetallePorIndice(${i})">Ver</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function verDetallePorIndice(idx) {
+    const encuesta = encuestasEnVista[idx];
+    if (!encuesta) return;
+    verDetalle(encuesta);
+  }
+
+  function verDetalle(encuesta) {
+    encuestaSeleccionada = encuesta;
+    const body = document.getElementById('modal-detalle-body');
+    body.innerHTML = `
+      <div style="margin-bottom:16px">
+        ${safeImageSrc(encuesta.fotoBase64) ? `
+          <div style="margin-bottom:16px">
+            <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Fotografía</div>
+            <img src="${safeImageSrc(encuesta.fotoBase64)}" style="width:100%;max-height:320px;object-fit:cover;border-radius:var(--radius-lg);border:1px solid var(--border);box-shadow:var(--shadow);"  alt=""/>
+          </div>` : ''}
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px">
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Nombre</div>
+          <div style="margin-top:4px;font-weight:500">${escapeHtml(encuesta.nombre || '—')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Sector</div>
+          <div style="margin-top:4px">${escapeHtml(encuesta.sector || '—')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Nivel escolar</div>
+          <div style="margin-top:4px">${badgeHtml(nivelLabel[encuesta.nivelEscolar] || '—', nivelBadgeColor[encuesta.nivelEscolar] || '#64748b')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Edad</div>
+          <div style="margin-top:4px">${encuesta.edad ?? '—'}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Género</div>
+          <div style="margin-top:4px"><span class="badge badge-vis">${escapeHtml(generoLabel[encuesta.genero] || encuesta.genero || '—')}</span></div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Tipo de escuela</div>
+          <div style="margin-top:4px">${badgeHtml(tipoEscuelaLabel[encuesta.tipoEscuela] || encuesta.tipoEscuela || '—', escuelaBadgeColor[encuesta.tipoEscuela] || '#64748b')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Estado de estudio</div>
+          <div style="margin-top:4px">${badgeHtml(estadoEstudioLabel[encuesta.estadoEstudio] || encuesta.estadoEstudio || '—', estadoBadgeColor[encuesta.estadoEstudio] || '#64748b')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">GPS</div>
+          <div style="margin-top:4px">
+            ${encuesta.latitud && encuesta.longitud ? `
+              <a class="btn btn-secondary btn-sm" href="${googleMapsUrl(encuesta.latitud, encuesta.longitud)}" target="_blank" rel="noopener noreferrer">Ver en Google Maps</a>
+            ` : '—'}
+          </div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Registrado por</div>
+          <div style="margin-top:4px">${escapeHtml(encuesta.usuarioNombre || '—')}</div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.1em">Fecha</div>
+          <div style="margin-top:4px">${encuesta.creadoEn ? new Date(encuesta.creadoEn).toLocaleString('es-DO') : '—'}</div>
+        </div>
+      </div>
+      </div>`;
+
+    document.getElementById('modal-detalle').classList.add('visible');
+  }
+
+  async function eliminarDesdeModal() {
+    if (!encuestaSeleccionada) return;
+
+    // DEBUG COMPLETO: inspeccionar estructura real del id antes de eliminar
+    console.log('=== DEBUG eliminarDesdeModal ===');
+    console.log('encuestaSeleccionada:', encuestaSeleccionada);
+    console.log('Tipo:', typeof encuestaSeleccionada);
+    console.log('_id:', encuestaSeleccionada._id);
+    console.log('Tipo de _id:', typeof encuestaSeleccionada._id);
+    console.log('id:', encuestaSeleccionada.id);
+    console.log('JSON.stringify(_id):', JSON.stringify(encuestaSeleccionada._id));
+
+    const id = normalizarIdMongo(encuestaSeleccionada._id || encuestaSeleccionada.id);
+    console.log('ID normalizado:', id);
+    console.log('================================');
+
+    if (!id || id === '[object Object]') { toast('ID no disponible', 'error'); return; }
+    if (!confirm('¿Eliminar permanentemente esta encuesta?')) return;
+
+    try {
+      await API.delete(`/api/encuestas/${id}`);
+      cerrarDetalle();
+      cargarEncuestas();
+      toast('Encuesta eliminada', 'success');
+    } catch (err) {
+      toast('Error al eliminar: ' + err.message, 'error');
+    }
+  }
+
+  function cerrarDetalle() {
+    document.getElementById('modal-detalle').classList.remove('visible');
+    encuestaSeleccionada = null;
+  }
+
+  function programarRecargaRealtime() {
+    clearTimeout(recargaTimer);
+    recargaTimer = setTimeout(() => {
+      cargarEncuestas();
+    }, 250);
+  }
+
+  function manejarEventoRealtime(msg) {
+    console.log('[WS] Evento recibido:', msg);
+    if (msg?.tipo === 'ENCUESTAS_ACTUALIZADAS') {
+      const accion = msg.accion || 'CAMBIO';
+      const cant = msg.cantidad || 0;
+      toast(`Actualización: ${accion} (${cant} registros)`, 'info', 1800);
+      programarRecargaRealtime();
+    }
+  }
+
+  // Monitor de conexión
+  document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
+  document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
+
+  // Badge pendientes
+  const pend = OfflineDB.contarPendientes();
+  const badge = document.getElementById('nav-badge-pending');
+  badge.textContent = pend;
+  badge.className = 'nav-badge' + (pend === 0 ? ' zero' : '');
+
+  RealtimeWS.suscribirEncuestas(manejarEventoRealtime);
+  refreshTimer = setInterval(() => {
+    cargarEncuestas();
+  }, 7000);
+  window.addEventListener('beforeunload', () => RealtimeWS.detener());
+  window.addEventListener('beforeunload', () => {
+    if (refreshTimer) clearInterval(refreshTimer);
+  });
+
+  cargarEncuestas();
+</script>
+</body>
+</html>
+

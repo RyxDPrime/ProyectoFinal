@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Bandeja de salida</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="accent-dot"></div>
+      ENCUESTA_PUCMM
+    </div>
+    <div class="topbar-right">
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">En línea</span>
+      </div>
+      <div class="topbar-user">
+        <span id="topbar-nombre">—</span>
+        <span class="role-badge" id="topbar-rol">—</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="nav-section-label" data-feature="captura">Captura</div>
+    <div class="nav-section" data-feature="captura">
+      <a href="/encuesta" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Nueva encuesta
+      </a>
+      <a href="/bandeja" class="nav-link active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        Bandeja de salida
+        <span class="nav-badge" id="nav-badge-pending">0</span>
+      </a>
+    </div>
+    <div class="nav-section-label">Reportes</div>
+    <div class="nav-section">
+      <a href="/listado" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+        Listado general
+      </a>
+      <a href="/dashboard" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+        Dashboard
+      </a>
+      <a href="/mapa" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Mapa
+      </a>
+    </div>
+    <div class="nav-section-label" id="nav-admin-label" data-feature="admin" style="display:none">Administración</div>
+    <div class="nav-section" id="nav-admin-section" data-feature="admin" style="display:none">
+      <a href="/usuarios" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </a>
+    </div>
+  </nav>
+
+  <!-- Contenido -->
+  <main class="main-content page-enter">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Bandeja de salida</h1>
+        <p>Encuestas capturadas localmente pendientes de sincronizar con el servidor.</p>
+      </div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-secondary" onclick="renderBandeja()">↻ Actualizar</button>
+        <button class="btn btn-primary" id="btn-sync" data-feature="sync" onclick="sincronizarTodas()">
+          <span class="spinner"></span>
+          <span class="btn-text">↑ Sincronizar todo</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="margin-bottom:24px">
+      <div class="stat-card">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value danger" id="stat-pendientes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sincronizadas hoy</div>
+        <div class="stat-value success" id="stat-sync">—</div>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div id="bandeja-list"></div>
+
+  </main>
+</div>
+
+<!-- Modal editar -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>// Editar encuesta</h3>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="edit-nombre">Nombre del encuestado</label>
+        <input type="text" id="edit-nombre" />
+      </div>
+      <div class="form-group">
+        <label for="edit-sector">Sector</label>
+        <input type="text" id="edit-sector" />
+      </div>
+      <div class="form-group">
+        <label for="edit-nivel">Nivel escolar</label>
+        <select id="edit-nivel">
+          <option value="BASICO">Básico</option>
+          <option value="MEDIO">Medio</option>
+          <option value="GRADO_UNIVERSITARIO">Grado Universitario</option>
+          <option value="POSTGRADO">Postgrado</option>
+          <option value="DOCTORADO">Doctorado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrar()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+  Auth.requerirAuth();
+  Auth.requerirAccesoRuta();
+
+  const usuario = Auth.getUsuario();
+  document.getElementById('topbar-nombre').textContent = usuario.nombre || usuario.email;
+  document.getElementById('topbar-rol').textContent    = usuario.rol;
+  if (usuario.rol === 'ADMIN') {
+    document.getElementById('nav-admin-label').style.display = '';
+    document.getElementById('nav-admin-section').style.display = '';
+  }
+  Auth.aplicarVisibilidadPorRol();
+
+  let editIndex = null;
+  let autoSyncTimer = null;
+
+  function renderBandeja() {
+    const pendientes = OfflineDB.obtenerTodas();
+    const badge = document.getElementById('nav-badge-pending');
+    const statEl = document.getElementById('stat-pendientes');
+
+    badge.textContent = pendientes.length;
+    badge.className   = 'nav-badge' + (pendientes.length === 0 ? ' zero' : '');
+    statEl.textContent = pendientes.length;
+
+    const container = document.getElementById('bandeja-list');
+
+    if (pendientes.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">✓</div>
+          <div>No hay encuestas pendientes de sincronizar</div>
+          <div style="margin-top:8px; color:var(--text-faint)">Todas las encuestas han sido enviadas al servidor</div>
+        </div>`;
+      return;
+    }
+
+    const nivelLabel = {
+      BASICO: 'Básico', MEDIO: 'Medio', GRADO_UNIVERSITARIO: 'Universitario',
+      POSTGRADO: 'Postgrado', DOCTORADO: 'Doctorado'
+    };
+
+    container.innerHTML = pendientes.map((enc, i) => `
+      <div class="bandeja-item">
+        ${safeImageSrc(enc.fotoBase64)
+            ? `<img src="${safeImageSrc(enc.fotoBase64)}" alt="Foto de ${escapeHtml(enc.nombre || 'encuestado')}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--radius);flex-shrink:0" />`
+            : `<div style="width:44px;height:44px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem;opacity:0.4">📷</div>`
+    }
+        <div class="bandeja-item-info">
+          <div class="bandeja-item-name">${escapeHtml(enc.nombre || '—')}</div>
+          <div class="bandeja-item-meta">
+            ${escapeHtml(enc.sector || '—')} &nbsp;·&nbsp;
+            ${nivelLabel[enc.nivelEscolar] || enc.nivelEscolar}
+            ${enc.latitud ? `&nbsp;·&nbsp; ${enc.latitud}, ${enc.longitud}` : ''}
+          </div>
+          <div class="bandeja-item-meta" style="margin-top:2px">
+            ${enc.creadoEn ? new Date(enc.creadoEn).toLocaleString('es-DO') : ''}
+          </div>
+        </div>
+        <span class="badge badge-pending">Pendiente</span>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="editarItem(${i})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="eliminarItem(${i})">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function editarItem(i) {
+    editIndex = i;
+    const enc = OfflineDB.obtenerTodas()[i];
+    document.getElementById('edit-nombre').value = enc.nombre;
+    document.getElementById('edit-sector').value  = enc.sector;
+    document.getElementById('edit-nivel').value   = enc.nivelEscolar;
+
+    const modal = document.getElementById('modal-editar');
+    modal.classList.add('visible');
+    setTimeout(() => modal.querySelector('.modal').style.transform = 'translateY(0)', 10);
+  }
+
+  function guardarEdicion() {
+    if (editIndex === null) return;
+    OfflineDB.actualizar(editIndex, {
+      nombre:       document.getElementById('edit-nombre').value.trim(),
+      sector:       document.getElementById('edit-sector').value.trim(),
+      nivelEscolar: document.getElementById('edit-nivel').value,
+    });
+    cerrarModal();
+    renderBandeja();
+    toast('Encuesta actualizada localmente', 'success');
+  }
+
+  function eliminarItem(i) {
+    if (!confirm('¿Eliminar esta encuesta pendiente?')) return;
+    OfflineDB.eliminar(i);
+    renderBandeja();
+    toast('Encuesta eliminada', 'info');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-editar').classList.remove('visible');
+    editIndex = null;
+  }
+
+  async function sincronizarTodas() {
+    if (!navigator.onLine) { toast('Sin conexión a Internet', 'error'); return; }
+    const pendientes = OfflineDB.obtenerTodas();
+    if (pendientes.length === 0) { toast('No hay encuestas pendientes', 'info'); return; }
+
+    const btn = document.getElementById('btn-sync');
+    btn.classList.add('loading'); btn.disabled = true;
+
+    try {
+      await SyncWS.sincronizar(pendientes);
+      OfflineDB.limpiarSincronizadas();
+      document.getElementById('stat-sync').textContent = pendientes.length;
+      renderBandeja();
+      toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+    } catch (err) {
+      toast('Error al sincronizar: ' + err.message, 'error');
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  // Monitor de conexión
+  function actualizarConexion() {
+    const online = navigator.onLine;
+    document.getElementById('conn-dot').classList.toggle('offline', !online);
+    document.getElementById('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
+    document.getElementById('btn-sync').disabled = !online;
+  }
+  window.addEventListener('online',  () => { actualizarConexion(); sincronizarTodas(); });
+  window.addEventListener('offline', actualizarConexion);
+  actualizarConexion();
+
+  window.addEventListener('enc-pendientes-changed', renderBandeja);
+  autoSyncTimer = setInterval(() => {
+    if (navigator.onLine) sincronizarTodas();
+  }, 15000);
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSyncTimer) clearInterval(autoSyncTimer);
+  });
+
+  renderBandeja();
+</script>
+</body>
+</html>

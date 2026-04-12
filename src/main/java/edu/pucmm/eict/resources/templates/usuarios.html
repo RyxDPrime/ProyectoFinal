@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Usuarios</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="app-layout">
+
+  <header class="topbar">
+    <div class="topbar-brand"><div class="accent-dot"></div>ENCUESTA_PUCMM</div>
+    <div class="topbar-right">
+      <div class="conn-status">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">En línea</span>
+      </div>
+      <div class="topbar-user">
+        <span id="topbar-nombre">—</span>
+        <span class="role-badge" id="topbar-rol">—</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+    </div>
+  </header>
+
+  <nav class="sidebar">
+    <div class="nav-section-label" data-feature="captura">Captura</div>
+    <div class="nav-section" data-feature="captura">
+      <a href="/encuesta" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Nueva encuesta
+      </a>
+      <a href="/bandeja" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+        Bandeja de salida
+        <span class="nav-badge zero" id="nav-badge-pending">0</span>
+      </a>
+    </div>
+    <div class="nav-section-label">Reportes</div>
+    <div class="nav-section">
+      <a href="/listado" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+        Listado general
+      </a>
+      <a href="/dashboard" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+        Dashboard
+      </a>
+      <a href="/mapa" class="nav-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+        Mapa
+      </a>
+    </div>
+    <div class="nav-section-label" data-feature="admin">Administración</div>
+    <div class="nav-section" data-feature="admin">
+      <a href="/usuarios" class="nav-link active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Usuarios
+      </a>
+    </div>
+  </nav>
+
+  <main class="main-content page-enter">
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>Gestión de usuarios</h1>
+        <p>Administra cuentas, roles y permisos del sistema.</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="cargarUsuarios()">↻</button>
+        <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nuevo usuario</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total usuarios</div>
+        <div class="stat-value" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Administradores</div>
+        <div class="stat-value accent" id="stat-admin">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Encuestadores</div>
+        <div class="stat-value" id="stat-enc">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Visualizadores</div>
+        <div class="stat-value" id="stat-vis">—</div>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card" style="padding:0; overflow:hidden">
+      <div id="tabla-usuarios">
+        <div class="empty-state"><div class="empty-icon">⟳</div>Cargando usuarios...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal nuevo / editar usuario -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-usuario-titulo">// Nuevo usuario</h3>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nombre completo <span class="required">*</span></label>
+        <label for="u-nombre"></label><input type="text" id="u-nombre" placeholder="Nombre completo" />
+      </div>
+      <div class="form-group" id="u-email-group">
+        <label>Email <span class="required">*</span></label>
+        <label for="u-email"></label><input type="email" id="u-email" placeholder="usuario@pucmm.edu.do" />
+      </div>
+      <div class="form-group" id="u-pwd-group">
+        <label>Contraseña <span class="required">*</span></label>
+        <label for="u-pwd"></label><input type="password" id="u-pwd" placeholder="Mín. 8 caracteres" />
+      </div>
+      <div class="form-group">
+        <label>Rol <span class="required">*</span></label>
+        <label for="u-rol"></label><select id="u-rol">
+          <option value="ENCUESTADOR">Encuestador</option>
+          <option value="VISUALIZADOR">Visualizador</option>
+          <option value="ADMIN">Administrador</option>
+        </select>
+      </div>
+      <div class="form-error" id="u-error" style="margin-top:-8px;margin-bottom:8px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-guardar-usuario" onclick="guardarUsuario()">
+        <span class="spinner"></span>
+        <span class="btn-text">Crear usuario</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal cambiar rol -->
+<div class="modal-overlay" id="modal-rol">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>// Cambiar rol</h3>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarModalRol()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-rol-nombre" style="margin-bottom:16px;color:var(--text)"></p>
+      <div class="form-group">
+        <label>Nuevo rol</label>
+        <label for="nuevo-rol"></label><select id="nuevo-rol">
+          <option value="ENCUESTADOR">Encuestador</option>
+          <option value="VISUALIZADOR">Visualizador</option>
+          <option value="ADMIN">Administrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModalRol()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarCambioRol()">Cambiar rol</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<script src="/js/app.js"></script>
+<script>
+  Auth.requerirAuth();
+  Auth.requerirAccesoRuta();
+
+  const usuario = Auth.getUsuario();
+  document.getElementById('topbar-nombre').textContent = usuario.nombre || usuario.email;
+  document.getElementById('topbar-rol').textContent    = usuario.rol;
+
+  // Solo ADMIN puede entrar aquí
+  if (usuario.rol !== 'ADMIN') {
+    window.location.href = Auth.getRutaInicioPorRol();
+  }
+
+  Auth.aplicarVisibilidadPorRol();
+
+  // Badge pendientes
+  const pend = OfflineDB.contarPendientes();
+  const badge = document.getElementById('nav-badge-pending');
+  badge.textContent = pend;
+  badge.className = 'nav-badge' + (pend === 0 ? ' zero' : '');
+
+  document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
+  document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
+
+  let usuarioSeleccionado = null;
+  let todosUsuarios = [];
+
+  const rolBadge = {
+    ADMIN: 'badge-admin',
+    ENCUESTADOR: 'badge-enc',
+    VISUALIZADOR: 'badge-vis'
+  };
+  const rolLabel = { ADMIN: 'Admin', ENCUESTADOR: 'Encuestador', VISUALIZADOR: 'Visualizador' };
+
+  async function cargarUsuarios() {
+    try {
+      todosUsuarios = await API.get('/api/usuarios');
+      actualizarStats();
+      renderTabla();
+    } catch (err) {
+      toast('Error cargando usuarios: ' + err.message, 'error');
+    }
+  }
+
+  function actualizarStats() {
+    document.getElementById('stat-total').textContent = todosUsuarios.length;
+    document.getElementById('stat-admin').textContent = todosUsuarios.filter(u => u.rol === 'ADMIN').length;
+    document.getElementById('stat-enc').textContent   = todosUsuarios.filter(u => u.rol === 'ENCUESTADOR').length;
+    document.getElementById('stat-vis').textContent   = todosUsuarios.filter(u => u.rol === 'VISUALIZADOR').length;
+  }
+
+  function renderTabla() {
+    const container = document.getElementById('tabla-usuarios');
+    if (todosUsuarios.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">∅</div>No hay usuarios registrados</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="table-wrapper" style="border:none;border-radius:0">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Creado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${todosUsuarios.map(u => `
+              <tr>
+                <td><strong>${escapeHtml(u.nombre || '—')}</strong></td>
+                <td class="td-mono">${escapeHtml(u.email || '—')}</td>
+                <td><span class="badge ${rolBadge[u.rol] || ''}">${escapeHtml(rolLabel[u.rol] || u.rol || '—')}</span></td>
+                <td class="td-mono">${u.creadoEn ? new Date(u.creadoEn).toLocaleDateString('es-DO') : '—'}</td>
+                <td>
+                  <div style="display:flex;gap:6px">
+                    <button class="btn btn-secondary btn-sm" onclick='abrirCambioRol(${JSON.stringify(u)})'>Rol</button>
+                    <button class="btn btn-danger btn-sm" onclick='eliminarUsuario("${normalizarIdMongo(u.id)}", ${JSON.stringify(u.nombre || '')})'>✕</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ── Nuevo usuario ─────────────────────────────────────────────
+  function abrirModalNuevo() {
+    usuarioSeleccionado = null;
+    document.getElementById('modal-usuario-titulo').textContent = '// Nuevo usuario';
+    document.getElementById('btn-guardar-usuario').querySelector('.btn-text').textContent = 'Crear usuario';
+    document.getElementById('u-email-group').style.display = '';
+    document.getElementById('u-pwd-group').style.display   = '';
+    document.getElementById('u-nombre').value = '';
+    document.getElementById('u-email').value  = '';
+    document.getElementById('u-pwd').value    = '';
+    document.getElementById('u-rol').value    = 'ENCUESTADOR';
+    document.getElementById('u-error').textContent = '';
+    document.getElementById('u-error').classList.remove('visible');
+    document.getElementById('modal-usuario').classList.add('visible');
+  }
+
+  async function guardarUsuario() {
+    const btn = document.getElementById('btn-guardar-usuario');
+    btn.classList.add('loading'); btn.disabled = true;
+    document.getElementById('u-error').classList.remove('visible');
+
+    const body = {
+      nombre:   document.getElementById('u-nombre').value.trim(),
+      email:    document.getElementById('u-email').value.trim(),
+      password: document.getElementById('u-pwd').value,
+      rol:      document.getElementById('u-rol').value
+    };
+
+    if (!body.nombre || !body.email || !body.password) {
+      mostrarError('Todos los campos son requeridos');
+      btn.classList.remove('loading'); btn.disabled = false;
+      return;
+    }
+
+    try {
+      await API.post('/api/auth/registro', body);
+      cerrarModal();
+      cargarUsuarios();
+      toast('Usuario creado exitosamente', 'success');
+    } catch (err) {
+      mostrarError(err.message);
+    } finally {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  function mostrarError(msg) {
+    const el = document.getElementById('u-error');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal-usuario').classList.remove('visible');
+  }
+
+  // ── Cambio de rol ─────────────────────────────────────────────
+  function abrirCambioRol(u) {
+    usuarioSeleccionado = u;
+    document.getElementById('modal-rol-nombre').textContent = `Usuario: ${u.nombre} (${u.email})`;
+    document.getElementById('nuevo-rol').value = u.rol;
+    document.getElementById('modal-rol').classList.add('visible');
+  }
+
+  async function confirmarCambioRol() {
+    if (!usuarioSeleccionado) return;
+    const id     = normalizarIdMongo(usuarioSeleccionado.id);
+    const nuevoRol = document.getElementById('nuevo-rol').value;
+    try {
+      await API.put(`/api/usuarios/${id}/rol`, { rol: nuevoRol });
+      cerrarModalRol();
+      cargarUsuarios();
+      toast('Rol actualizado', 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  function cerrarModalRol() {
+    document.getElementById('modal-rol').classList.remove('visible');
+    usuarioSeleccionado = null;
+  }
+
+  // ── Eliminar ──────────────────────────────────────────────────
+  async function eliminarUsuario(id, nombre) {
+    if (!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await API.delete(`/api/usuarios/${id}`);
+      cargarUsuarios();
+      toast('Usuario eliminado', 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  cargarUsuarios();
+</script>
+</body>
+</html>

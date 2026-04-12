@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Encuesta PUCMM — Captura</title>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="app-layout">
+
+    <!-- Topbar -->
+    <header class="topbar">
+        <div class="topbar-brand">
+            <div class="accent-dot"></div>
+            ENCUESTA_PUCMM
+        </div>
+        <div class="topbar-right">
+            <div class="conn-status">
+                <div class="conn-dot" id="conn-dot"></div>
+                <span id="conn-label">En línea</span>
+            </div>
+            <div class="topbar-user">
+                <span id="topbar-nombre">—</span>
+                <span class="role-badge" id="topbar-rol">—</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+            <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none">☰</button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="nav-section-label" data-feature="captura">Captura</div>
+        <div class="nav-section" data-feature="captura">
+            <a href="/encuesta" class="nav-link active">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                Nueva encuesta
+            </a>
+            <a href="/bandeja" class="nav-link">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                Bandeja de salida
+                <span class="nav-badge" id="nav-badge-pending">0</span>
+            </a>
+        </div>
+
+        <div class="nav-section-label">Reportes</div>
+        <div class="nav-section">
+            <a href="/listado" class="nav-link">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+                Listado general
+            </a>
+            <a href="/dashboard" class="nav-link">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 15l3-4 3 2 4-6"/></svg>
+                Dashboard
+            </a>
+            <a href="/mapa" class="nav-link">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                Mapa
+            </a>
+        </div>
+
+        <div class="nav-section-label" id="nav-admin-label" data-feature="admin" style="display:none">Administración</div>
+        <div class="nav-section" id="nav-admin-section" data-feature="admin" style="display:none">
+            <a href="/usuarios" class="nav-link">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                Usuarios
+            </a>
+        </div>
+    </nav>
+
+    <!-- Contenido -->
+    <main class="main-content page-enter">
+        <div class="page-header">
+            <div class="page-header-left">
+                <h1>Nueva encuesta</h1>
+                <p>Completa todos los campos. Los datos se guardan localmente si no hay conexión.</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 360px; gap:24px; align-items:start">
+
+            <!-- Formulario principal -->
+            <div class="card">
+                <div class="card-title">Datos del encuestado</div>
+                <form id="form-encuesta">
+
+                    <div class="form-grid">
+                        <div class="form-group span-2">
+                            <label>Nombre del encuestado <span class="required">*</span></label>
+                            <label for="enc-nombre"></label><input type="text" id="enc-nombre" placeholder="Ej. María González" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Sector <span class="required">*</span></label>
+                            <label for="enc-sector"></label><input type="text" id="enc-sector" placeholder="Ej. La Canela, Santiago" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Nivel escolar <span class="required">*</span></label>
+                            <label for="enc-nivel"></label><select id="enc-nivel" required>
+                                <option value="">— Seleccionar —</option>
+                                <option value="BASICO">Básico</option>
+                                <option value="MEDIO">Medio</option>
+                                <option value="GRADO_UNIVERSITARIO">Grado Universitario</option>
+                                <option value="POSTGRADO">Postgrado</option>
+                                <option value="DOCTORADO">Doctorado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Edad <span class="required">*</span></label>
+                            <label for="enc-edad"></label><input type="number" id="enc-edad" min="1" max="120" step="1" placeholder="Ej. 18" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Género <span class="required">*</span></label>
+                            <label for="enc-genero"></label><select id="enc-genero" required>
+                                <option value="">— Seleccionar —</option>
+                                <option value="MASCULINO">Masculino</option>
+                                <option value="FEMENINO">Femenino</option>
+                                <option value="NO_BINARIO">No binario</option>
+                                <option value="PREFIERO_NO_DECIR">Prefiero no decir</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tipo de escuela <span class="required">*</span></label>
+                            <label for="enc-tipo-escuela"></label><select id="enc-tipo-escuela" required>
+                                <option value="">— Seleccionar —</option>
+                                <option value="PUBLICO">Público</option>
+                                <option value="PRIVADO">Privado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Estado de estudio <span class="required">*</span></label>
+                            <label for="enc-estado-estudio"></label><select id="enc-estado-estudio" required>
+                                <option value="">— Seleccionar —</option>
+                                <option value="EN_CURSO">En curso</option>
+                                <option value="COMPLETO">Completo</option>
+                                <option value="POSPUESTO">Pospuesto</option>
+                                <option value="RETIRADO">Retirado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="divider" />
+                    <div class="card-title">Geolocalización</div>
+
+                    <div class="form-group">
+                        <div class="gps-display">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <div class="gps-coords empty" id="gps-display">Sin coordenadas capturadas</div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-gps" onclick="capturarGPS()">
+                                <span class="btn-text">Capturar GPS</span>
+                                <span class="spinner"></span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="enc-latitud" />
+                        <input type="hidden" id="enc-longitud" />
+                        <div class="form-hint">Se captura automáticamente la posición del dispositivo</div>
+                    </div>
+
+                    <hr class="divider" />
+
+                    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px">
+                        <button type="button" class="btn btn-ghost" onclick="limpiarFormulario()">Limpiar</button>
+                        <button type="submit" class="btn btn-primary" id="btn-guardar">
+                            <span class="spinner"></span>
+                            <span class="btn-text">Guardar encuesta</span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- Panel lateral: foto + estado -->
+            <div style="display:flex; flex-direction:column; gap:16px">
+
+                <!-- Captura de foto -->
+                <div class="card">
+                    <div class="card-title">Fotografía</div>
+                    <div class="photo-zone" id="photo-zone" onclick="abrirCamara()">
+                        <div id="photo-placeholder">
+                            <div style="font-size:2rem; opacity:0.3">📷</div>
+                            <div class="photo-zone-label">Toca para tomar foto</div>
+                        </div>
+                        <img id="photo-preview" style="display:none" alt="Foto capturada" />
+                        <div class="photo-actions" id="photo-actions" style="display:none">
+                            <button class="btn btn-danger btn-sm" id="btn-eliminar-foto" type="button">✕</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="enc-foto" />
+                    <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" />
+                </div>
+
+                <!-- Estado de guardado -->
+                <div class="card" id="estado-card">
+                    <div class="card-title">Estado</div>
+                    <div id="estado-content">
+                        <div style="font-family:var(--font-mono), monospace; font-size:0.75rem; color:var(--text-faint)">
+                            Sin datos guardados aún
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicador offline -->
+                <div class="card" id="offline-notice" style="display:none; border-color:var(--warning)">
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <span style="font-size:1.2rem">⚠️</span>
+                        <div>
+                            <div style="font-family:var(--font-mono), monospace; font-size:0.75rem; color:var(--warning); font-weight:600">MODO OFFLINE</div>
+                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px">Los datos se guardan localmente y se enviarán cuando haya conexión</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal cámara -->
+<div class="modal-overlay" id="modal-camara" style="display:none">
+    <div class="modal" style="max-width:480px">
+        <div class="modal-header">
+            <h3>// Captura de fotografía</h3>
+            <button class="btn btn-ghost btn-sm" onclick="cerrarCamara()">✕</button>
+        </div>
+        <div class="modal-body">
+            <video id="camera-video" autoplay playsinline></video>
+            <div class="camera-actions">
+                <button class="btn btn-ghost" onclick="cerrarCamara()">Cancelar</button>
+                <button class="btn btn-primary" onclick="tomarFoto()">📷 Capturar</button>
+                <button class="btn btn-secondary btn-sm" onclick="usarArchivo()">📁 Desde galería</button>
+            </div>
+        </div>
+        <canvas id="camera-canvas" style="display:none"></canvas>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- FAB sincronizar -->
+<button class="fab-sync no-pending" id="fab-sync" data-feature="sync" onclick="sincronizarPendientes()" title="Sincronizar pendientes">
+    ↑
+    <span class="fab-badge" id="fab-badge">0</span>
+</button>
+
+<script src="/js/app.js"></script>
+<script>
+    const byId = id => document.getElementById(id);
+    const LAST_GPS_KEY = 'encuesta:last-gps';
+    const usuario = Auth.getUsuario() || {};
+    let stream = null;
+    let autoSyncTimer = null;
+
+    function iniciarGPSAutomatico() {
+        if (!navigator.geolocation) return;
+        capturarGPS(true);
+    }
+
+    function guardarUltimaGPS(lat, lng) {
+        localStorage.setItem(LAST_GPS_KEY, JSON.stringify({ lat, lng, ts: Date.now() }));
+    }
+
+    function obtenerUltimaGPS() {
+        try {
+            const raw = localStorage.getItem(LAST_GPS_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            const lat = Number(parsed?.lat);
+            const lng = Number(parsed?.lng);
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            return { lat: lat.toFixed(6), lng: lng.toFixed(6), ts: parsed.ts || null };
+        } catch {
+            return null;
+        }
+    }
+
+    function aplicarGPS(lat, lng, sufijo = '') {
+        byId('enc-latitud').value = lat;
+        byId('enc-longitud').value = lng;
+        const disp = byId('gps-display');
+        disp.classList.remove('empty');
+        disp.textContent = `Lat: ${lat} · Lng: ${lng}${sufijo}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        Auth.requerirAuth();
+        Auth.requerirAccesoRuta();
+
+        byId('form-encuesta')?.addEventListener('submit', handleGuardar);
+        byId('file-input')?.addEventListener('change', procesarFoto);
+        byId('btn-eliminar-foto')?.addEventListener('click', eliminarFoto);
+
+        byId('topbar-nombre').textContent = usuario.nombre || usuario.email || '—';
+        byId('topbar-rol').textContent = usuario.rol || '—';
+
+        if (usuario.rol === 'ADMIN') {
+            byId('nav-admin-label').style.display = '';
+            byId('nav-admin-section').style.display = '';
+        }
+
+        if (window.innerWidth < 768) {
+            byId('menu-toggle').style.display = 'flex';
+        }
+
+        Auth.aplicarVisibilidadPorRol();
+
+        actualizarConexion();
+        actualizarBadges();
+
+        setTimeout(iniciarGPSAutomatico, 150);
+
+        window.addEventListener('enc-pendientes-changed', actualizarBadges);
+        setTimeout(intentarAutoSyncPendientes, 900);
+        autoSyncTimer = setInterval(intentarAutoSyncPendientes, 15000);
+    });
+
+    window.addEventListener('pageshow', () => {
+        if (!byId('enc-latitud').value && !byId('enc-longitud').value) {
+            setTimeout(iniciarGPSAutomatico, 150);
+        }
+    });
+
+    function toggleMenu() {
+        byId('sidebar').classList.toggle('open');
+    }
+
+    function actualizarConexion() {
+        const online = navigator.onLine;
+        byId('conn-dot').classList.toggle('offline', !online);
+        byId('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
+        byId('offline-notice').style.display = online ? 'none' : 'block';
+    }
+
+    window.addEventListener('online', actualizarConexion);
+    window.addEventListener('offline', actualizarConexion);
+
+    function actualizarBadges() {
+        const pendientes = OfflineDB.contarPendientes();
+        const badge = byId('nav-badge-pending');
+        const fabBadge = byId('fab-badge');
+        const fab = byId('fab-sync');
+        badge.textContent = pendientes;
+        badge.className = 'nav-badge' + (pendientes === 0 ? ' zero' : '');
+        fabBadge.textContent = pendientes;
+        fab.classList.toggle('no-pending', pendientes === 0);
+    }
+
+    async function intentarAutoSyncPendientes() {
+        // Sincronización automática deshabilitada
+        // Solo se sincroniza al presionar el botón FAB manualmente
+    }
+
+    function capturarGPS(silencioso = false) {
+        const btn = byId('btn-gps');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        if (!navigator.geolocation) {
+            const cache = obtenerUltimaGPS();
+            if (cache) {
+                aplicarGPS(cache.lat, cache.lng, ' (cache)');
+                if (!silencioso) toast('GPS no disponible. Usando ultima coordenada guardada.', 'warning');
+            } else if (!silencioso) {
+                toast('Este dispositivo no soporta geolocalizacion', 'error');
+            }
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            return;
+        }
+
+        const opts = navigator.onLine
+            ? { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 }
+            : { enableHighAccuracy: false, timeout: 12000, maximumAge: Infinity };
+
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+                aplicarGPS(lat, lng);
+                guardarUltimaGPS(lat, lng);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                if (!silencioso) toast('Coordenadas capturadas', 'success');
+            },
+            err => {
+                const cache = obtenerUltimaGPS();
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                if (cache) {
+                    aplicarGPS(cache.lat, cache.lng, ' (cache)');
+                    if (!silencioso) toast('No se pudo leer GPS en vivo. Usando ultima coordenada guardada.', 'warning');
+                    return;
+                }
+                if (!silencioso) toast('No se pudo obtener la ubicacion: ' + err.message, 'error');
+            },
+            opts
+        );
+    }
+
+    async function abrirCamara() {
+        const modal = byId('modal-camara');
+        modal.classList.add('visible');
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+            byId('camera-video').srcObject = stream;
+        } catch {
+            cerrarCamara();
+            byId('file-input').click();
+        }
+    }
+
+    function cerrarCamara() {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+        byId('modal-camara').classList.remove('visible');
+    }
+
+    function tomarFoto() {
+        const video = byId('camera-video');
+        const canvas = byId('camera-canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const fotoData = canvas.toDataURL('image/jpeg', 0.6);  // 60% de calidad
+        comprimirYAsignarFoto(fotoData);
+        cerrarCamara();
+    }
+
+    function usarArchivo() {
+        cerrarCamara();
+        byId('file-input').click();
+    }
+
+    function procesarFoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => comprimirYAsignarFoto(e.target.result);
+        reader.readAsDataURL(file);
+    }
+
+    function comprimirYAsignarFoto(base64) {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width = Math.round((width * MAX_HEIGHT) / height);
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            const comprimida = canvas.toDataURL('image/jpeg', 0.6);  // 60% de calidad
+            asignarFoto(comprimida);
+        };
+        img.src = base64;
+    }
+
+    function asignarFoto(base64) {
+        byId('enc-foto').value = base64;
+        const preview = byId('photo-preview');
+        const placeholder = byId('photo-placeholder');
+        const actions = byId('photo-actions');
+        const zone = byId('photo-zone');
+
+        preview.src = base64;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+        actions.style.display = 'flex';
+        zone.classList.add('has-photo');
+        toast('Foto capturada', 'success');
+    }
+
+    function eliminarFoto(e) {
+        e.stopPropagation();
+        byId('enc-foto').value = '';
+        byId('photo-preview').style.display = 'none';
+        byId('photo-placeholder').style.display = 'block';
+        byId('photo-actions').style.display = 'none';
+        byId('photo-zone').classList.remove('has-photo');
+    }
+
+    async function handleGuardar(e) {
+        e.preventDefault();
+        const btn = byId('btn-guardar');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        const encuesta = {
+            nombre: byId('enc-nombre').value.trim(),
+            sector: byId('enc-sector').value.trim(),
+            nivelEscolar: byId('enc-nivel').value,
+            edad: parseInt(byId('enc-edad').value, 10) || null,
+            genero: byId('enc-genero').value || null,
+            tipoEscuela: byId('enc-tipo-escuela').value || null,
+            estadoEstudio: byId('enc-estado-estudio').value || null,
+            latitud: parseFloat(byId('enc-latitud').value) || null,
+            longitud: parseFloat(byId('enc-longitud').value) || null,
+            fotoBase64: byId('enc-foto').value || null,
+            creadoEn: new Date().toISOString(),
+            sincronizado: false,
+            usuarioId: usuario.usuarioId || null,
+            usuarioNombre: usuario.nombre || usuario.email || null,
+        };
+
+        // SIEMPRE guardar en bandeja de salida (offline)
+        // El usuario puede modificar o borrar antes de sincronizar (requisito 11)
+        OfflineDB.guardar(encuesta);
+        console.log('[GUARDAR] ✓ Encuesta guardada en bandeja de salida');
+        toast('Encuesta guardada en bandeja de salida ✓', 'success');
+        actualizarEstado('En bandeja de salida', 'info');
+        limpiarFormulario();
+
+        actualizarBadges();
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+
+    function actualizarEstado(texto, tipo) {
+        const colores = { success: 'var(--success)', warning: 'var(--warning)', error: 'var(--danger)' };
+        const container = byId('estado-content');
+        container.replaceChildren();
+
+        const line1 = document.createElement('div');
+        line1.style.fontFamily = 'var(--font-mono)';
+        line1.style.fontSize = '0.75rem';
+        line1.style.color = colores[tipo] || 'var(--text-muted)';
+        line1.textContent = `● ${texto}`;
+
+        const line2 = document.createElement('div');
+        line2.style.fontFamily = 'var(--font-mono)';
+        line2.style.fontSize = '0.65rem';
+        line2.style.color = 'var(--text-faint)';
+        line2.style.marginTop = '4px';
+        line2.textContent = new Date().toLocaleTimeString('es-DO');
+
+        container.append(line1, line2);
+    }
+
+    function limpiarFormulario() {
+        byId('form-encuesta').reset();
+        byId('enc-foto').value = '';
+        byId('photo-preview').style.display = 'none';
+        byId('photo-placeholder').style.display = 'block';
+        byId('photo-actions').style.display = 'none';
+        byId('photo-zone').classList.remove('has-photo');
+        byId('gps-display').textContent = 'Sin coordenadas capturadas';
+        byId('gps-display').classList.add('empty');
+
+        if (navigator.geolocation) capturarGPS(true);
+    }
+
+    async function sincronizarPendientes() {
+        if (!navigator.onLine) {
+            toast('Sin conexión a Internet', 'error');
+            return;
+        }
+        const pendientes = OfflineDB.obtenerTodas();
+        if (pendientes.length === 0) {
+            toast('No hay encuestas pendientes', 'info');
+            return;
+        }
+
+        const fab = byId('fab-sync');
+        fab.disabled = true;
+        fab.textContent = '⟳';
+
+        try {
+            await SyncWS.sincronizar(pendientes);
+            OfflineDB.limpiarSincronizadas();
+            actualizarBadges();
+            toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+        } catch {
+            toast('Error al sincronizar. Intenta de nuevo.', 'error');
+        } finally {
+            fab.disabled = false;
+            fab.textContent = '↑';
+        }
+    }
+
+    window.addEventListener('online', () => {
+        const pendientes = OfflineDB.contarPendientes();
+        if (pendientes > 0) {
+            toast(`Tienes ${pendientes} encuesta(s) en la bandeja de salida`, 'info', 5000);
+        }
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (autoSyncTimer) clearInterval(autoSyncTimer);
+    });
+</script>
+</body>
+</html>

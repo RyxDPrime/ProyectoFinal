@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta PUCMM — Registro</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .login-page {
+      background-image:
+              linear-gradient(var(--border) 1px, transparent 1px),
+              linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .login-page::before {
+      content: '';
+      position: fixed;
+      right: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, transparent, var(--accent-dim), transparent);
+    }
+    .login-box {
+      background: rgba(22,22,22,0.96);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 420px;
+    }
+    .login-corner {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.6rem;
+      color: var(--text-faint);
+      letter-spacing: 0.1em;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .login-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .login-footer a {
+      color: var(--accent);
+      font-family: var(--font-mono), monospace;
+      font-size: 0.78rem;
+    }
+    /* Indicador de fortaleza de contraseña */
+    .pwd-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .pwd-bar {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: background 300ms;
+    }
+    .pwd-bar.weak   { background: var(--danger); }
+    .pwd-bar.medium { background: var(--warning); }
+    .pwd-bar.strong { background: var(--success); }
+    .pwd-label {
+      font-family: var(--font-mono), monospace;
+      font-size: 0.65rem;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;z-index:1">
+  <div class="login-box">
+
+    <div class="login-corner">
+      <span>SYS::AUTH / REGISTRO</span>
+      <span id="clock">--:--:--</span>
+    </div>
+
+    <div class="login-brand">
+      <h1>ENCUESTA<span style="color:var(--accent)">_</span>PUCMM</h1>
+      <div class="login-separator"></div>
+      <div class="sub">Crear cuenta nueva</div>
+    </div>
+
+    <form id="form-registro" style="margin-top:28px">
+
+      <div class="form-group">
+        <label>Nombre completo <span class="required">*</span></label>
+        <label for="reg-nombre"></label><input type="text" id="reg-nombre" placeholder="Ej. Juan Pérez" required />
+      </div>
+
+      <div class="form-group">
+        <label>Email <span class="required">*</span></label>
+        <label for="reg-email"></label><input type="email" id="reg-email" placeholder="usuario@pucmm.edu.do"
+                                              required autocomplete="email" />
+        <div class="form-error" id="err-email"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña <span class="required">*</span></label>
+        <label for="reg-pwd"></label><input type="password" id="reg-pwd" placeholder="Mínimo 8 caracteres"
+                                            required minlength="8" autocomplete="new-password"
+                                            oninput="evaluarContrasena(this.value)" />
+        <div class="pwd-strength">
+          <div class="pwd-bar" id="bar1"></div>
+          <div class="pwd-bar" id="bar2"></div>
+          <div class="pwd-bar" id="bar3"></div>
+          <div class="pwd-bar" id="bar4"></div>
+        </div>
+        <div class="pwd-label" id="pwd-label">Ingresa una contraseña</div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar contraseña <span class="required">*</span></label>
+        <label for="reg-pwd2"></label><input type="password" id="reg-pwd2" placeholder="Repite la contraseña"
+                                             required autocomplete="new-password" />
+        <div class="form-error" id="err-pwd2"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Rol</label>
+        <label for="reg-rol"></label><select id="reg-rol">
+          <option value="ENCUESTADOR">Encuestador</option>
+          <option value="VISUALIZADOR">Visualizador</option>
+        </select>
+        <div class="form-hint">El rol ADMIN solo puede ser asignado por un administrador</div>
+      </div>
+
+      <div class="form-error" id="reg-global-error" style="margin-bottom:14px"></div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="btn-registro">
+        <span class="spinner"></span>
+        <span class="btn-text">Crear cuenta</span>
+      </button>
+
+    </form>
+
+    <div class="login-footer">
+      ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/app.js"></script>
+<script>
+  setInterval(() => {
+    document.getElementById('clock').textContent =
+            new Date().toLocaleTimeString('es-DO');
+  }, 1000);
+
+  // Evita depender del simbolo global `event` en handlers inline.
+  document.getElementById('form-registro')?.addEventListener('submit', handleRegistro);
+
+  // Si ya tiene sesion activa, redirigir
+  if (Auth.estaAutenticado()) {
+    window.location.href = Auth.getRutaInicioPorRol();
+  }
+
+  // ── Indicador de fortaleza de contraseña ──────────────────────
+  function evaluarContrasena(pwd) {
+    const bars  = [1,2,3,4].map(i => document.getElementById('bar' + i));
+    const label = document.getElementById('pwd-label');
+
+    // Limpiar
+    bars.forEach(b => b.className = 'pwd-bar');
+
+    if (!pwd) { label.textContent = 'Ingresa una contraseña'; return; }
+
+    let score = 0;
+    if (pwd.length >= 8)                        score++;
+    if (/[A-Z]/.test(pwd))                      score++;
+    if (/[0-9]/.test(pwd))                      score++;
+    if (/[^A-Za-z0-9]/.test(pwd))               score++;
+
+    const niveles = [
+      { clase: 'weak',   texto: 'Débil',    color: 'var(--danger)' },
+      { clase: 'weak',   texto: 'Débil',    color: 'var(--danger)' },
+      { clase: 'medium', texto: 'Regular',  color: 'var(--warning)' },
+      { clase: 'strong', texto: 'Fuerte',   color: 'var(--success)' },
+      { clase: 'strong', texto: 'Muy fuerte', color: 'var(--success)' },
+    ];
+
+    const nivel = niveles[score];
+    for (let i = 0; i < score; i++) bars[i].classList.add(nivel.clase);
+    label.textContent = nivel.texto;
+    label.style.color = nivel.color;
+  }
+
+  // ── Registro ──────────────────────────────────────────────────
+  async function handleRegistro(e) {
+    e.preventDefault();
+
+    const btn       = document.getElementById('btn-registro');
+    const globalErr = document.getElementById('reg-global-error');
+    const errEmail  = document.getElementById('err-email');
+    const errPwd2   = document.getElementById('err-pwd2');
+
+    // Limpiar errores previos
+    [globalErr, errEmail, errPwd2].forEach(el => {
+      el.textContent = '';
+      el.classList.remove('visible');
+    });
+
+    const nombre   = document.getElementById('reg-nombre').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const pwd      = document.getElementById('reg-pwd').value;
+    const pwd2     = document.getElementById('reg-pwd2').value;
+    const rol      = document.getElementById('reg-rol').value;
+
+    // Validaciones cliente
+    if (pwd !== pwd2) {
+      errPwd2.textContent = 'Las contraseñas no coinciden';
+      errPwd2.classList.add('visible');
+      return;
+    }
+
+    if (pwd.length < 8) {
+      document.getElementById('reg-pwd').focus();
+      return;
+    }
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    try {
+      await API.post('/api/auth/registro', { nombre, email, password: pwd, rol });
+      toast('Cuenta creada correctamente. Ahora inicia sesión.', 'success');
+      // Pequeña espera para que el toast sea visible antes de redirigir
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 1800);
+    } catch (err) {
+      if (err.message?.toLowerCase().includes('email')) {
+        errEmail.textContent = err.message;
+        errEmail.classList.add('visible');
+      } else {
+        globalErr.textContent = err.message || 'Error al crear la cuenta';
+        globalErr.classList.add('visible');
+      }
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
