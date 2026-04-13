@@ -43,11 +43,18 @@ public class AuthController {
             return;
         }
 
-        Optional<Usuario> resultado = usuarioService.autenticar(body.email, body.password);
+        String email = body.email.trim();
+        Optional<Usuario> existente = usuarioService.buscarPorEmail(email);
+        if (existente.isEmpty()) {
+            ctx.status(HttpStatus.UNAUTHORIZED)
+                    .json(Map.of("mensaje", "No existe una cuenta registrada con ese email"));
+            return;
+        }
 
+        Optional<Usuario> resultado = usuarioService.autenticar(email, body.password);
         if (resultado.isEmpty()) {
             ctx.status(HttpStatus.UNAUTHORIZED)
-                    .json(Map.of("mensaje", "Credenciales incorrectas"));
+                    .json(Map.of("mensaje", "La contraseña no es correcta"));
             return;
         }
 
