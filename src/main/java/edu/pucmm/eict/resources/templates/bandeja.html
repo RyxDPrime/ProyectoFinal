@@ -109,31 +109,121 @@
       <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label for="edit-nombre">Nombre del encuestado</label>
-        <input type="text" id="edit-nombre" />
+      <div class="card-title" style="margin-top:0">Datos del encuestado</div>
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label for="edit-nombre">Nombre del encuestado</label>
+          <input type="text" id="edit-nombre" />
+        </div>
+        <div class="form-group">
+          <label for="edit-sector">Sector</label>
+          <input type="text" id="edit-sector" />
+        </div>
+        <div class="form-group">
+          <label for="edit-nivel">Nivel escolar</label>
+          <select id="edit-nivel">
+            <option value="BASICO">Básico</option>
+            <option value="MEDIO">Medio</option>
+            <option value="GRADO_UNIVERSITARIO">Grado Universitario</option>
+            <option value="POSTGRADO">Postgrado</option>
+            <option value="DOCTORADO">Doctorado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-edad">Edad</label>
+          <input type="number" id="edit-edad" min="1" max="120" step="1" />
+        </div>
+        <div class="form-group">
+          <label for="edit-genero">Género</label>
+          <select id="edit-genero">
+            <option value="">— Seleccionar —</option>
+            <option value="MASCULINO">Masculino</option>
+            <option value="FEMENINO">Femenino</option>
+            <option value="NO_BINARIO">No binario</option>
+            <option value="PREFIERO_NO_DECIR">Prefiero no decir</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-tipo-escuela">Tipo de escuela</label>
+          <select id="edit-tipo-escuela">
+            <option value="">— Seleccionar —</option>
+            <option value="PUBLICO">Público</option>
+            <option value="PRIVADO">Privado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="edit-estado-estudio">Estado de estudio</label>
+          <select id="edit-estado-estudio">
+            <option value="">— Seleccionar —</option>
+            <option value="EN_CURSO">En curso</option>
+            <option value="COMPLETO">Completo</option>
+            <option value="POSPUESTO">Pospuesto</option>
+            <option value="RETIRADO">Retirado</option>
+          </select>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="edit-sector">Sector</label>
-        <input type="text" id="edit-sector" />
+
+      <hr class="divider" />
+
+      <div class="card-title">Geolocalización</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="edit-latitud">Latitud</label>
+          <input type="number" id="edit-latitud" step="any" placeholder="Ej. 18.486" />
+        </div>
+        <div class="form-group">
+          <label for="edit-longitud">Longitud</label>
+          <input type="number" id="edit-longitud" step="any" placeholder="Ej. -69.931" />
+        </div>
       </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="capturarGPSEdicion()">📍 Capturar GPS otra vez</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="limpiarGPSedicion()">Quitar coordenadas</button>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="card-title">Fotografía</div>
       <div class="form-group">
-        <label for="edit-nivel">Nivel escolar</label>
-        <select id="edit-nivel">
-          <option value="BASICO">Básico</option>
-          <option value="MEDIO">Medio</option>
-          <option value="GRADO_UNIVERSITARIO">Grado Universitario</option>
-          <option value="POSTGRADO">Postgrado</option>
-          <option value="DOCTORADO">Doctorado</option>
-        </select>
+        <label for="edit-foto">Foto en base64</label>
+        <textarea id="edit-foto" rows="3" placeholder="Pega aquí el base64 de la imagen o déjalo vacío para quitarla"></textarea>
+        <div class="form-hint">Si no necesitas cambiar la foto, puedes dejar el valor actual.</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="abrirCamaraEdicion()">📷 Tomar otra foto</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="limpiarFotoEdicion()">Quitar foto</button>
+      </div>
+      <div id="edit-foto-preview" style="display:none; margin-top:12px">
+        <img alt="Vista previa de la foto" style="width:100%; max-height:220px; object-fit:cover; border-radius:var(--radius); border:1px solid var(--border)" />
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="cerrar()">Cancelar</button>
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
     </div>
   </div>
 </div>
+
+<!-- Modal cámara para editar -->
+<div class="modal-overlay" id="modal-camara-edicion" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>// Captura de fotografía</h3>
+      <button class="btn btn-ghost btn-sm" onclick="cerrarCamaraEdicion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <video id="camera-video-edicion" autoplay playsinline></video>
+      <div class="camera-actions">
+        <button class="btn btn-ghost" onclick="cerrarCamaraEdicion()">Cancelar</button>
+        <button class="btn btn-primary" onclick="tomarFotoEdicion()">📷 Capturar</button>
+        <button class="btn btn-secondary btn-sm" onclick="usarArchivoEdicion()">📁 Desde galería</button>
+      </div>
+    </div>
+    <canvas id="camera-canvas-edicion" style="display:none"></canvas>
+  </div>
+</div>
+
+<input type="file" id="file-input-edicion" accept="image/*" capture="environment" style="display:none" />
 
 <!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
@@ -154,6 +244,7 @@
 
   let editIndex = null;
   let autoSyncTimer = null;
+  let editCameraStream = null;
 
   function renderBandeja() {
     const pendientes = OfflineDB.obtenerTodas();
@@ -199,11 +290,154 @@
           </div>
         </div>
         <span class="badge badge-pending">Pendiente</span>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button class="btn btn-ghost btn-sm" onclick="editarItem(${i})">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="eliminarItem(${i})">✕</button>
+        <div class="bandeja-item-actions">
+          <button class="btn btn-ghost btn-sm" title="Editar encuesta" aria-label="Editar encuesta" onclick="editarItem(${i})">Editar</button>
+          <button class="btn btn-danger btn-sm" title="Eliminar encuesta pendiente" aria-label="Eliminar encuesta pendiente" onclick="eliminarItem(${i})">Eliminar</button>
         </div>
       </div>`).join('');
+  }
+
+  function normalizarNumero(valor) {
+    if (valor === '' || valor === null || typeof valor === 'undefined') return null;
+    const num = Number(valor);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function actualizarVistaFotoEdicion(base64) {
+    const contenedor = document.getElementById('edit-foto-preview');
+    const img = contenedor?.querySelector('img');
+    if (!contenedor || !img) return;
+
+    const src = base64 ? safeImageSrc(base64) : '';
+    if (src) {
+      img.src = src;
+      contenedor.style.display = 'block';
+    } else {
+      img.removeAttribute('src');
+      contenedor.style.display = 'none';
+    }
+  }
+
+  function actualizarGPSedicion(lat, lng) {
+    document.getElementById('edit-latitud').value = lat;
+    document.getElementById('edit-longitud').value = lng;
+  }
+
+  function limpiarGPSedicion() {
+    document.getElementById('edit-latitud').value = '';
+    document.getElementById('edit-longitud').value = '';
+    toast('Coordenadas eliminadas', 'info');
+  }
+
+  function capturarGPSEdicion(silencioso = false) {
+    if (!navigator.geolocation) {
+      if (!silencioso) toast('Este dispositivo no soporta geolocalización', 'error');
+      return;
+    }
+
+    const opts = navigator.onLine
+            ? { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 }
+            : { enableHighAccuracy: false, timeout: 12000, maximumAge: Infinity };
+
+    navigator.geolocation.getCurrentPosition(
+            pos => {
+              const lat = pos.coords.latitude.toFixed(6);
+              const lng = pos.coords.longitude.toFixed(6);
+              actualizarGPSedicion(lat, lng);
+              if (!silencioso) toast('Coordenadas capturadas de nuevo', 'success');
+            },
+            err => {
+              if (!silencioso) toast('No se pudo obtener la ubicación: ' + err.message, 'error');
+            },
+            opts
+    );
+  }
+
+  function limpiarFotoEdicion() {
+    document.getElementById('edit-foto').value = '';
+    actualizarVistaFotoEdicion('');
+    toast('Foto eliminada', 'info');
+  }
+
+  async function abrirCamaraEdicion() {
+    const modal = document.getElementById('modal-camara-edicion');
+    modal.classList.add('visible');
+
+    try {
+      editCameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      document.getElementById('camera-video-edicion').srcObject = editCameraStream;
+    } catch {
+      cerrarCamaraEdicion();
+      document.getElementById('file-input-edicion').click();
+    }
+  }
+
+  function cerrarCamaraEdicion() {
+    if (editCameraStream) {
+      editCameraStream.getTracks().forEach(t => t.stop());
+      editCameraStream = null;
+    }
+    document.getElementById('modal-camara-edicion').classList.remove('visible');
+  }
+
+  function tomarFotoEdicion() {
+    const video = document.getElementById('camera-video-edicion');
+    const canvas = document.getElementById('camera-canvas-edicion');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const fotoData = canvas.toDataURL('image/jpeg', 0.6);
+    comprimirYAsignarFotoEdicion(fotoData);
+    cerrarCamaraEdicion();
+  }
+
+  function usarArchivoEdicion() {
+    cerrarCamaraEdicion();
+    document.getElementById('file-input-edicion').click();
+  }
+
+  function procesarFotoEdicion(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => comprimirYAsignarFotoEdicion(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function comprimirYAsignarFotoEdicion(base64) {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+      } else if (height > MAX_HEIGHT) {
+        width = Math.round((width * MAX_HEIGHT) / height);
+        height = MAX_HEIGHT;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      const comprimida = canvas.toDataURL('image/jpeg', 0.6);
+      asignarFotoEdicion(comprimida);
+    };
+    img.src = base64;
+  }
+
+  function asignarFotoEdicion(base64) {
+    document.getElementById('edit-foto').value = base64;
+    actualizarVistaFotoEdicion(base64);
+    toast('Foto actualizada', 'success');
   }
 
   function editarItem(i) {
@@ -212,6 +446,14 @@
     document.getElementById('edit-nombre').value = enc.nombre;
     document.getElementById('edit-sector').value  = enc.sector;
     document.getElementById('edit-nivel').value   = enc.nivelEscolar;
+    document.getElementById('edit-edad').value = enc.edad ?? '';
+    document.getElementById('edit-genero').value = enc.genero ?? '';
+    document.getElementById('edit-tipo-escuela').value = enc.tipoEscuela ?? '';
+    document.getElementById('edit-estado-estudio').value = enc.estadoEstudio ?? '';
+    document.getElementById('edit-latitud').value = enc.latitud ?? '';
+    document.getElementById('edit-longitud').value = enc.longitud ?? '';
+    document.getElementById('edit-foto').value = enc.fotoBase64 ?? '';
+    actualizarVistaFotoEdicion(enc.fotoBase64);
 
     const modal = document.getElementById('modal-editar');
     modal.classList.add('visible');
@@ -224,6 +466,13 @@
       nombre:       document.getElementById('edit-nombre').value.trim(),
       sector:       document.getElementById('edit-sector').value.trim(),
       nivelEscolar: document.getElementById('edit-nivel').value,
+      edad:         normalizarNumero(document.getElementById('edit-edad').value),
+      genero:       document.getElementById('edit-genero').value || null,
+      tipoEscuela:  document.getElementById('edit-tipo-escuela').value || null,
+      estadoEstudio: document.getElementById('edit-estado-estudio').value || null,
+      latitud:      normalizarNumero(document.getElementById('edit-latitud').value),
+      longitud:     normalizarNumero(document.getElementById('edit-longitud').value),
+      fotoBase64:   document.getElementById('edit-foto').value.trim() || null,
     });
     cerrarModal();
     renderBandeja();
@@ -241,6 +490,12 @@
     document.getElementById('modal-editar').classList.remove('visible');
     editIndex = null;
   }
+
+  document.getElementById('edit-foto')?.addEventListener('input', (e) => {
+    actualizarVistaFotoEdicion(e.target.value.trim());
+  });
+
+  document.getElementById('file-input-edicion')?.addEventListener('change', procesarFotoEdicion);
 
   async function sincronizarTodas() {
     if (!navigator.onLine) { toast('Sin conexión a Internet', 'error'); return; }
@@ -281,6 +536,9 @@
 
   window.addEventListener('beforeunload', () => {
     if (autoSyncTimer) clearInterval(autoSyncTimer);
+    if (editCameraStream) {
+      editCameraStream.getTracks().forEach(t => t.stop());
+    }
   });
 
   renderBandeja();

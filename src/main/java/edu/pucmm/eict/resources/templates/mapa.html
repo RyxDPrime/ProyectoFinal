@@ -23,7 +23,7 @@
     .leaflet-popup-tip { background: var(--bg-card); }
     .popup-nombre { font-family: var(--font-mono), monospace; font-weight: 700; font-size: 0.85rem; }
     .popup-meta   { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-    .popup-coords { font-family: var(--font-mono), monospace; font-size: 0.7rem; color: var(--accent); margin-top: 4px; }
+    .popup-coords { font-family: var(--font-mono), monospace; font-size: 0.7rem; color: #0D6EFD; margin-top: 4px; }
     .popup-foto   { width: 100%; max-height: 120px; object-fit: cover; border-radius: var(--radius); margin-top: 8px; }
     .map-filter-bar {
       display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
@@ -104,13 +104,13 @@
     <!-- Filtros -->
     <div class="map-filter-bar">
       <label for="filtro-nivel-mapa"></label><select id="filtro-nivel-mapa" onchange="aplicarFiltros()">
-        <option value="">Todos los niveles</option>
-        <option value="BASICO">Básico</option>
-        <option value="MEDIO">Medio</option>
-        <option value="GRADO_UNIVERSITARIO">Universitario</option>
-        <option value="POSTGRADO">Postgrado</option>
-        <option value="DOCTORADO">Doctorado</option>
-      </select>
+      <option value="">Todos los niveles</option>
+      <option value="BASICO">Básico</option>
+      <option value="MEDIO">Medio</option>
+      <option value="GRADO_UNIVERSITARIO">Universitario</option>
+      <option value="POSTGRADO">Postgrado</option>
+      <option value="DOCTORADO">Doctorado</option>
+    </select>
       <label for="filtro-sector-mapa"></label><input type="text" id="filtro-sector-mapa" placeholder="Filtrar por sector..." oninput="aplicarFiltros()" />
       <span class="map-counter" id="map-counter">— puntos</span>
     </div>
@@ -151,23 +151,23 @@
   const map = L.map('map', { zoomControl: true })
           .setView([18.4861, -69.9312], 8); // Centro República Dominicana
 
-  // Tile oscuro compatible con la estética
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  // Tile claro compatible con modo light
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd',
     maxZoom: 19
   }).addTo(map);
 
-  // Icono personalizado ámbar
+  // Icono personalizado azul (modo claro)
   const iconoAmbar = L.divIcon({
     className: '',
     html: `<div style="
-      width:12px; height:12px;
-      background:#f59e0b;
-      border: 2px solid #000;
-      border-radius: 50%;
-      box-shadow: 0 0 8px rgba(245,158,11,0.7);
-    "></div>`,
+       width:12px; height:12px;
+       background:#0D6EFD;
+       border: 2px solid #FFFFFF;
+       border-radius: 50%;
+       box-shadow: 0 0 8px rgba(13,110,253,0.5);
+     "></div>`,
     iconSize: [12, 12],
     iconAnchor: [6, 6],
   });

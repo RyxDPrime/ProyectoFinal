@@ -6,22 +6,16 @@
   <title>Encuesta PUCMM — Registro</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .login-page {
-      background-image:
-              linear-gradient(var(--border) 1px, transparent 1px),
-              linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
     .login-page::before {
       content: '';
       position: fixed;
       right: 0; top: 0; bottom: 0;
       width: 3px;
-      background: linear-gradient(to bottom, transparent, var(--accent-dim), transparent);
+      background: linear-gradient(to bottom, transparent, #0D6EFD, transparent);
     }
     .login-box {
-      background: rgba(22,22,22,0.96);
-      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.98);
+      border: 1px solid #DEE2E6;
       border-radius: var(--radius-lg);
       padding: 40px 36px;
       backdrop-filter: blur(8px);
@@ -44,7 +38,7 @@
       color: var(--text-muted);
     }
     .login-footer a {
-      color: var(--accent);
+      color: #0D6EFD;
       font-family: var(--font-mono), monospace;
       font-size: 0.78rem;
     }
@@ -61,9 +55,9 @@
       border-radius: 2px;
       transition: background 300ms;
     }
-    .pwd-bar.weak   { background: var(--danger); }
-    .pwd-bar.medium { background: var(--warning); }
-    .pwd-bar.strong { background: var(--success); }
+    .pwd-bar.weak   { background: #DC3545; }
+    .pwd-bar.medium { background: #FFC107; }
+    .pwd-bar.strong { background: #198754; }
     .pwd-label {
       font-family: var(--font-mono), monospace;
       font-size: 0.65rem;
@@ -83,7 +77,7 @@
     </div>
 
     <div class="login-brand">
-      <h1>ENCUESTA<span style="color:var(--accent)">_</span>PUCMM</h1>
+      <h1><span style="color:var(--accent)">ENCUESTA_PUCMM</span></h1>
       <div class="login-separator"></div>
       <div class="sub">Crear cuenta nueva</div>
     </div>
@@ -126,9 +120,9 @@
       <div class="form-group">
         <label>Rol</label>
         <label for="reg-rol"></label><select id="reg-rol">
-          <option value="ENCUESTADOR">Encuestador</option>
-          <option value="VISUALIZADOR">Visualizador</option>
-        </select>
+        <option value="ENCUESTADOR">Encuestador</option>
+        <option value="VISUALIZADOR">Visualizador</option>
+      </select>
         <div class="form-hint">El rol ADMIN solo puede ser asignado por un administrador</div>
       </div>
 
