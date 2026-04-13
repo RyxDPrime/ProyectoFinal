@@ -2,14 +2,18 @@ plugins {
     id 'java'
     id 'application'
     id 'com.google.protobuf' version '0.9.4'
+    id 'com.gradleup.shadow' version '8.3.6'
 }
 
 group   = 'edu.pucmm.eict'
 version = '1.0.0'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 application {
@@ -91,18 +95,18 @@ sourceSets {
 }
 
 // -----------------------------------------------------------------------
-// Fat JAR (incluye todas las dependencias)
+// Shadow JAR (incluye todas las dependencias)
 // -----------------------------------------------------------------------
-jar {
+shadowJar {
+    archiveClassifier.set('')
     manifest {
         attributes 'Main-Class': 'edu.pucmm.eict.main.Main'
     }
-    from {
-        configurations.runtimeClasspath.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    mergeServiceFiles()
+}
+
+tasks.build {
+    dependsOn tasks.shadowJar
 }
 
 // -----------------------------------------------------------------------

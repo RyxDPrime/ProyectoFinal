@@ -17,7 +17,6 @@ FROM eclipse-temurin:25-jre-jammy AS runtime
 
 WORKDIR /app
 
-ENV PORT=8000
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
 RUN useradd --system --uid 10001 --create-home --home-dir /app appuser
