@@ -70,11 +70,28 @@ public class AuthController {
     // POST /api/auth/registro
     // -------------------------------------------------------------------
     public void registro(Context ctx) {
-        var body = ctx.bodyAsClass(RegistroRequest.class);
+        RegistroRequest body;
+        try {
+            body = ctx.bodyAsClass(RegistroRequest.class);
+        } catch (Exception e) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                    .json(Map.of("mensaje", "Solicitud de registro inválida"));
+            return;
+        }
+
+        if (body == null || body.nombre == null || body.nombre.isBlank() ||
+                body.email == null || body.email.isBlank() ||
+                body.password == null || body.password.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                    .json(Map.of("mensaje", "Nombre, email y contraseña son obligatorios"));
+            return;
+        }
 
         Rol rol;
         try {
-            rol = (body.rol != null) ? Rol.valueOf(body.rol.toUpperCase()) : Rol.ENCUESTADOR;
+            rol = esAdminSolicitante(ctx) && body.rol != null
+                    ? Rol.valueOf(body.rol.toUpperCase())
+                    : Rol.ENCUESTADOR;
         } catch (IllegalArgumentException e) {
             ctx.status(HttpStatus.BAD_REQUEST)
                     .json(Map.of("mensaje", "Rol inválido: " + body.rol));
@@ -95,6 +112,20 @@ public class AuthController {
         }
     }
 
+
+    private boolean esAdminSolicitante(Context ctx) {
+        String header = ctx.header("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            return false;
+        }
+
+        try {
+            var jwt = JwtUtil.verificarToken(header.substring(7));
+            return Rol.ADMIN.name().equals(JwtUtil.extraerRol(jwt));
+        } catch (Exception e) {
+            return false;
+        }
+    }
     // -------------------------------------------------------------------
     // DTOs internos
     // -------------------------------------------------------------------

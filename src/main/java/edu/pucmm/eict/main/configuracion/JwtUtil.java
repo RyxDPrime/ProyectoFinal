@@ -24,7 +24,6 @@ public class JwtUtil {
     private static final long   EXPIRACION_MS = 1000L * 60 * 60 * 8; // 8 horas
     private static final String ISSUER        = "encuesta-pucmm";
     private static final String PROP_JWT_SECRET = "jwt.secret";
-    private static final String DEFAULT_DEV_SECRET = "dev-secret-encuesta-pucmm";
 
     // Constructor privado — clase de utilidad estática
     private JwtUtil() {}
@@ -39,8 +38,7 @@ public class JwtUtil {
             secret = System.getProperty(PROP_JWT_SECRET);
         }
         if (secret == null || secret.isBlank()) {
-            secret = DEFAULT_DEV_SECRET;
-            System.err.println("[JwtUtil] JWT_SECRET no definido; usando secreto de desarrollo.");
+            throw new IllegalStateException("JWT_SECRET no definido. Configura una clave segura antes de iniciar la aplicación.");
         }
         return Algorithm.HMAC256(secret);
     }

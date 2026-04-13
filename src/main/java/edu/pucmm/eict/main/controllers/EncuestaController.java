@@ -12,6 +12,8 @@ import edu.pucmm.eict.main.servicios.EncuestaService;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import org.bson.types.ObjectId;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.time.Instant;
 import java.util.List;
@@ -46,7 +48,17 @@ public class EncuestaController {
     // GET /api/encuestas
     // -------------------------------------------------------------------
     public void listarTodas(Context ctx) {
-        List<Encuesta> encuestas = encuestaService.listarTodas();
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
+
+        List<Encuesta> encuestas = esPrivilegiado(jwt)
+                ? encuestaService.listarTodas()
+                : encuestaService.listarPorUsuario(JwtUtil.extraerUsuarioId(jwt));
         ctx.status(HttpStatus.OK).json(encuestas);
     }
 
@@ -54,7 +66,20 @@ public class EncuestaController {
     // GET /api/encuestas/usuario/{id}
     // -------------------------------------------------------------------
     public void listarPorUsuario(Context ctx) {
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
+
         String usuarioId = ctx.pathParam("id");
+        if (!esPrivilegiado(jwt) && !usuarioId.equals(JwtUtil.extraerUsuarioId(jwt))) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Acceso denegado"));
+            return;
+        }
+
         List<Encuesta> encuestas = encuestaService.listarPorUsuario(usuarioId);
         ctx.status(HttpStatus.OK).json(encuestas);
     }
@@ -63,10 +88,23 @@ public class EncuestaController {
     // GET /api/encuestas/{id}
     // -------------------------------------------------------------------
     public void buscarPorId(Context ctx) {
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
+
         String id = ctx.pathParam("id");
         encuestaService.buscarPorId(id)
-                .ifPresentOrElse(
-                        e  -> ctx.status(HttpStatus.OK).json(e),
+                .ifPresentOrElse(e -> {
+                            if (esPrivilegiado(jwt) || (e.getUsuarioId() != null && JwtUtil.extraerUsuarioId(jwt).equals(e.getUsuarioId().toHexString()))) {
+                                ctx.status(HttpStatus.OK).json(e);
+                            } else {
+                                ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Acceso denegado"));
+                            }
+                        },
                         () -> ctx.status(HttpStatus.NOT_FOUND)
                                 .json(Map.of("mensaje", "Encuesta no encontrada"))
                 );
@@ -79,7 +117,13 @@ public class EncuestaController {
         var body = ctx.bodyAsClass(EncuestaRequest.class);
 
         // Extraer usuario del token
-        var jwt       = JwtUtil.verificarToken(extraerToken(ctx));
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
         String usuarioId     = JwtUtil.extraerUsuarioId(jwt);
         String usuarioNombre = JwtUtil.extraerEmail(jwt); // se usa email como nombre en el token
 
@@ -118,7 +162,13 @@ public class EncuestaController {
         String id   = ctx.pathParam("id");
         var    body = ctx.bodyAsClass(EncuestaRequest.class);
 
-        var    jwt       = JwtUtil.verificarToken(extraerToken(ctx));
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
         String usuarioId = JwtUtil.extraerUsuarioId(jwt);
 
         NivelEscolar nivel;
@@ -159,7 +209,13 @@ public class EncuestaController {
     // -------------------------------------------------------------------
     public void eliminar(Context ctx) {
         String id        = ctx.pathParam("id");
-        var    jwt       = JwtUtil.verificarToken(extraerToken(ctx));
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
         String usuarioId = JwtUtil.extraerUsuarioId(jwt);
         String rol       = JwtUtil.extraerRol(jwt);
 
@@ -182,7 +238,7 @@ public class EncuestaController {
     public void sincronizar(Context ctx) {
         try {
             // Extraer usuario del token
-            var jwt = JwtUtil.verificarToken(extraerToken(ctx));
+            var jwt = obtenerJwt(ctx);
             String usuarioId = JwtUtil.extraerUsuarioId(jwt);
             String usuarioNombre = JwtUtil.extraerEmail(jwt);
 
@@ -206,6 +262,10 @@ public class EncuestaController {
                     "mensaje", "Sincronización completada",
                     "procesadas", total
             ));
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of(
+                    "mensaje", "Token inválido o expirado"
+            ));
         } catch (Exception e) {
             System.err.println("[SYNC] ERROR: " + e.getMessage());
             System.err.println("[SYNC] Detalle: " + e);
@@ -218,6 +278,15 @@ public class EncuestaController {
     // -------------------------------------------------------------------
     // Utilidades
     // -------------------------------------------------------------------
+    private DecodedJWT obtenerJwt(Context ctx) {
+        return JwtUtil.verificarToken(extraerToken(ctx));
+    }
+
+    private boolean esPrivilegiado(DecodedJWT jwt) {
+        String rol = JwtUtil.extraerRol(jwt);
+        return Rol.ADMIN.name().equals(rol) || Rol.VISUALIZADOR.name().equals(rol);
+    }
+
     private String extraerToken(Context ctx) {
         String header = ctx.header("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {

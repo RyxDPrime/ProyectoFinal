@@ -82,12 +82,12 @@ public class MongoConfig {
     private String resolverMongoUri() {
         String uri = System.getenv(ENV_MONGO_URI);
         if (uri != null && !uri.isBlank()) {
-            return uri;
+            return uri.trim();
         }
 
         uri = System.getProperty(PROP_MONGO_URI);
         if (uri != null && !uri.isBlank()) {
-            return uri;
+            return uri.trim();
         }
 
         System.err.println("[MongoConfig] No se encontro MONGO_URI ni -Dmongo.uri; se usara mongodb local por defecto.");
