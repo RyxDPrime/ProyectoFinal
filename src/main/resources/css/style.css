@@ -551,7 +551,7 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     text-transform: uppercase;
 }
 
-.badge-admin    { background: rgba(13,110,253,0.15); color: #0D6EFD; border: 1px solid #0D6EFD; }
+.badge-admin    { background: rgba(124,58,237,0.18); color: #7C3AED; border: 1px solid #7C3AED; }
 .badge-enc      { background: rgba(13,110,253,0.15); color: #0D6EFD; border: 1px solid #0D6EFD; }
 .badge-vis      { background: rgba(25,135,84,0.15);  color: #198754;     border: 1px solid #198754; }
 .badge-sync     { background: rgba(25,135,84,0.1);   color: #198754; }

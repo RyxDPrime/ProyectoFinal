@@ -19,9 +19,11 @@ const CONFIG = {
     WS_PATH: '/ws/sync',
     STORAGE_KEY_TOKEN:   'enc_token',
     STORAGE_KEY_USUARIO: 'enc_usuario',
+    STORAGE_KEY_SYNC_COUNTER: 'enc_sync_counter',
     DB_NAME:    'EncuestaPUCMM',
     DB_VERSION: 1,
     STORE_PENDIENTES: 'pendientes',
+    AUTO_SYNC_INTERVAL_MS: 15000,
 };
 
 const ROUTE_ACCESS = {
@@ -278,6 +280,48 @@ function safeImageSrc(valor) {
 window.safeImageSrc = safeImageSrc;
 
 // ════════════════════════════════════════════════════════════════════
+// SyncStats — contador persistente de sincronizaciones por usuario/día
+// ════════════════════════════════════════════════════════════════════
+const SyncStats = {
+    _hoyClave: function() {
+        return new Date().toISOString().slice(0, 10);
+    },
+
+    _usuarioKey: function() {
+        const usuarioId = Auth.getUsuario()?.usuarioId || 'anon';
+        return `${usuarioId}:${this._hoyClave()}`;
+    },
+
+    _leerTodo: function() {
+        try {
+            return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY_SYNC_COUNTER) || '{}');
+        } catch {
+            return {};
+        }
+    },
+
+    _guardarTodo: function(data) {
+        localStorage.setItem(CONFIG.STORAGE_KEY_SYNC_COUNTER, JSON.stringify(data));
+    },
+
+    obtenerSincronizadasHoy: function() {
+        const data = this._leerTodo();
+        return Number(data[this._usuarioKey()] || 0);
+    },
+
+    sumarSincronizadas: function(cantidad) {
+        const n = Number(cantidad) || 0;
+        if (n <= 0) return;
+        const data = this._leerTodo();
+        const key = this._usuarioKey();
+        data[key] = Number(data[key] || 0) + n;
+        this._guardarTodo(data);
+    },
+};
+
+window.SyncStats = SyncStats;
+
+// ════════════════════════════════════════════════════════════════════
 // OfflineDB — IndexedDB para encuestas pendientes
 // ════════════════════════════════════════════════════════════════════
 const OfflineDB = (() => {
@@ -316,9 +360,25 @@ const OfflineDB = (() => {
     const lsFallback = {
         _cargar: () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } },
         _guardar: (arr) => localStorage.setItem(LS_KEY, JSON.stringify(arr)),
-        guardar: (enc) => { const a = lsFallback._cargar(); a.push(enc); lsFallback._guardar(a); notificarCambioPendientes(); },
+        guardar: (enc) => {
+            const a = lsFallback._cargar();
+            const localId = Date.now() + Math.floor(Math.random() * 1000);
+            a.push({ ...enc, _localId: localId });
+            lsFallback._guardar(a);
+            notificarCambioPendientes();
+        },
         obtenerTodas: () => lsFallback._cargar(),
+        obtenerPorLocalId: (localId) => lsFallback._cargar().find(item => item && item._localId === localId) || null,
         eliminar: (i) => { const a = lsFallback._cargar(); a.splice(i, 1); lsFallback._guardar(a); notificarCambioPendientes(); },
+        eliminarPorLocalId: (localId) => {
+            const a = lsFallback._cargar();
+            const idx = a.findIndex(item => item && item._localId === localId);
+            if (idx >= 0) {
+                a.splice(idx, 1);
+                lsFallback._guardar(a);
+                notificarCambioPendientes();
+            }
+        },
         actualizar: (i, cambios) => { const a = lsFallback._cargar(); a[i] = {...a[i], ...cambios}; lsFallback._guardar(a); notificarCambioPendientes(); },
         contarPendientes: () => lsFallback._cargar().length,
         limpiarSincronizadas: () => { localStorage.removeItem(LS_KEY); notificarCambioPendientes(); },
@@ -387,6 +447,29 @@ const OfflineDB = (() => {
                         this._actualizarCache();
                         notificarCambioPendientes();
                     }
+                };
+            }).catch(console.error);
+        },
+
+        obtenerPorLocalId: function(localId) {
+            return new Promise((resolve, reject) => {
+                abrirDB().then(base => {
+                    const tx = base.transaction(CONFIG.STORE_PENDIENTES, 'readonly');
+                    const store = tx.objectStore(CONFIG.STORE_PENDIENTES);
+                    const req = store.get(localId);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => reject(req.error);
+                }).catch(reject);
+            });
+        },
+
+        eliminarPorLocalId: function(localId) {
+            abrirDB().then(base => {
+                const tx = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
+                tx.objectStore(CONFIG.STORE_PENDIENTES).delete(localId);
+                tx.oncomplete = () => {
+                    this._actualizarCache();
+                    notificarCambioPendientes();
                 };
             }).catch(console.error);
         },

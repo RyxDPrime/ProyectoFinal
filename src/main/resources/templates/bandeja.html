@@ -245,15 +245,18 @@
   let editIndex = null;
   let autoSyncTimer = null;
   let editCameraStream = null;
+  let syncInProgress = false;
 
   function renderBandeja() {
     const pendientes = OfflineDB.obtenerTodas();
     const badge = document.getElementById('nav-badge-pending');
     const statEl = document.getElementById('stat-pendientes');
+    const statSync = document.getElementById('stat-sync');
 
     badge.textContent = pendientes.length;
     badge.className   = 'nav-badge' + (pendientes.length === 0 ? ' zero' : '');
     statEl.textContent = pendientes.length;
+    statSync.textContent = SyncStats.obtenerSincronizadasHoy();
 
     const container = document.getElementById('bandeja-list');
 
@@ -291,6 +294,7 @@
         </div>
         <span class="badge badge-pending">Pendiente</span>
         <div class="bandeja-item-actions">
+          <button class="btn btn-primary btn-sm" title="Sincronizar encuesta" aria-label="Sincronizar encuesta" onclick="sincronizarItem(${i})">Sync</button>
           <button class="btn btn-ghost btn-sm" title="Editar encuesta" aria-label="Editar encuesta" onclick="editarItem(${i})">Editar</button>
           <button class="btn btn-danger btn-sm" title="Eliminar encuesta pendiente" aria-label="Eliminar encuesta pendiente" onclick="eliminarItem(${i})">Eliminar</button>
         </div>
@@ -497,24 +501,62 @@
 
   document.getElementById('file-input-edicion')?.addEventListener('change', procesarFotoEdicion);
 
-  async function sincronizarTodas() {
-    if (!navigator.onLine) { toast('Sin conexión a Internet', 'error'); return; }
+  async function sincronizarTodas(opts = {}) {
+    const silencioso = !!opts.silencioso;
+    if (syncInProgress) return;
+    if (!navigator.onLine) { if (!silencioso) toast('Sin conexión a Internet', 'error'); return; }
     const pendientes = OfflineDB.obtenerTodas();
-    if (pendientes.length === 0) { toast('No hay encuestas pendientes', 'info'); return; }
+    if (pendientes.length === 0) { if (!silencioso) toast('No hay encuestas pendientes', 'info'); return; }
 
     const btn = document.getElementById('btn-sync');
+    syncInProgress = true;
     btn.classList.add('loading'); btn.disabled = true;
 
     try {
       await SyncWS.sincronizar(pendientes);
       OfflineDB.limpiarSincronizadas();
-      document.getElementById('stat-sync').textContent = pendientes.length;
+      SyncStats.sumarSincronizadas(pendientes.length);
+      document.getElementById('stat-sync').textContent = SyncStats.obtenerSincronizadasHoy();
       renderBandeja();
-      toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+      if (!silencioso) {
+        toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+      }
     } catch (err) {
-      toast('Error al sincronizar: ' + err.message, 'error');
+      if (!silencioso) toast('Error al sincronizar: ' + err.message, 'error');
     } finally {
+      syncInProgress = false;
       btn.classList.remove('loading'); btn.disabled = false;
+    }
+  }
+
+  async function sincronizarItem(i) {
+    if (syncInProgress) return;
+    if (!navigator.onLine) { toast('Sin conexión a Internet', 'error'); return; }
+
+    const pendientes = OfflineDB.obtenerTodas();
+    const encuesta = pendientes[i];
+    if (!encuesta) {
+      toast('La encuesta ya no está disponible en la bandeja', 'warning');
+      renderBandeja();
+      return;
+    }
+
+    syncInProgress = true;
+    try {
+      await SyncWS.sincronizar([encuesta]);
+      if (typeof encuesta._localId !== 'undefined') {
+        OfflineDB.eliminarPorLocalId(encuesta._localId);
+      } else {
+        OfflineDB.eliminar(i);
+      }
+      SyncStats.sumarSincronizadas(1);
+      document.getElementById('stat-sync').textContent = SyncStats.obtenerSincronizadasHoy();
+      renderBandeja();
+      toast('Encuesta sincronizada ✓', 'success');
+    } catch (err) {
+      toast('Error al sincronizar encuesta: ' + err.message, 'error');
+    } finally {
+      syncInProgress = false;
     }
   }
 
@@ -525,14 +567,14 @@
     document.getElementById('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
     document.getElementById('btn-sync').disabled = !online;
   }
-  window.addEventListener('online',  () => { actualizarConexion(); sincronizarTodas(); });
+  window.addEventListener('online',  () => { actualizarConexion(); sincronizarTodas({ silencioso: true }); });
   window.addEventListener('offline', actualizarConexion);
   actualizarConexion();
 
   window.addEventListener('enc-pendientes-changed', renderBandeja);
   autoSyncTimer = setInterval(() => {
-    if (navigator.onLine) sincronizarTodas();
-  }, 15000);
+    if (navigator.onLine) sincronizarTodas({ silencioso: true });
+  }, CONFIG.AUTO_SYNC_INTERVAL_MS);
 
   window.addEventListener('beforeunload', () => {
     if (autoSyncTimer) clearInterval(autoSyncTimer);

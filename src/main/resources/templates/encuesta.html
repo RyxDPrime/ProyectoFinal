@@ -233,7 +233,7 @@
             <video id="camera-video" autoplay playsinline></video>
             <div class="camera-actions">
                 <button class="btn btn-ghost" onclick="cerrarCamara()">Cancelar</button>
-                <!--                <button class="btn btn-primary" onclick="tomarFoto()">📷 Capturar</button>-->
+                <button class="btn btn-primary" onclick="tomarFoto()">📷 Capturar</button>
                 <button class="btn btn-secondary btn-sm" onclick="usarArchivo()">📁 Desde galería</button>
             </div>
         </div>
@@ -257,6 +257,7 @@
     const usuario = Auth.getUsuario() || {};
     let stream = null;
     let autoSyncTimer = null;
+    let syncInProgress = false;
 
     function iniciarGPSAutomatico() {
         if (!navigator.geolocation) return;
@@ -318,7 +319,7 @@
 
         window.addEventListener('enc-pendientes-changed', actualizarBadges);
         setTimeout(intentarAutoSyncPendientes, 900);
-        autoSyncTimer = setInterval(intentarAutoSyncPendientes, 15000);
+        autoSyncTimer = setInterval(intentarAutoSyncPendientes, CONFIG.AUTO_SYNC_INTERVAL_MS);
     });
 
     window.addEventListener('pageshow', () => {
@@ -353,8 +354,10 @@
     }
 
     async function intentarAutoSyncPendientes() {
-        // Sincronización automática deshabilitada
-        // Solo se sincroniza al presionar el botón FAB manualmente
+        if (!navigator.onLine || syncInProgress) return;
+        const pendientes = OfflineDB.contarPendientes();
+        if (pendientes === 0) return;
+        await sincronizarPendientes({ silencioso: true, automatico: true });
     }
 
     function capturarGPS(silencioso = false) {
@@ -405,6 +408,10 @@
     }
 
     async function abrirCamara() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            byId('file-input').click();
+            return;
+        }
         const modal = byId('modal-camara');
         modal.classList.add('visible');
 
@@ -507,6 +514,11 @@
 
     async function handleGuardar(e) {
         e.preventDefault();
+        if (!byId('enc-foto').value) {
+            toast('La fotografía es obligatoria. Debes capturar o seleccionar una imagen.', 'warning');
+            return;
+        }
+
         const btn = byId('btn-guardar');
         btn.classList.add('loading');
         btn.disabled = true;
@@ -575,31 +587,41 @@
         if (navigator.geolocation) capturarGPS(true);
     }
 
-    async function sincronizarPendientes() {
+    async function sincronizarPendientes(opts = {}) {
+        const silencioso = !!opts.silencioso;
+        const automatico = !!opts.automatico;
+        if (syncInProgress) return;
         if (!navigator.onLine) {
-            toast('Sin conexión a Internet', 'error');
+            if (!silencioso) toast('Sin conexión a Internet', 'error');
             return;
         }
         const pendientes = OfflineDB.obtenerTodas();
         if (pendientes.length === 0) {
-            toast('No hay encuestas pendientes', 'info');
+            if (!silencioso) toast('No hay encuestas pendientes', 'info');
             return;
         }
 
         const fab = byId('fab-sync');
+        syncInProgress = true;
         fab.disabled = true;
-        fab.textContent = '⟳';
+        fab.classList.add('loading');
 
         try {
             await SyncWS.sincronizar(pendientes);
             OfflineDB.limpiarSincronizadas();
+            SyncStats.sumarSincronizadas(pendientes.length);
             actualizarBadges();
-            toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+            if (!silencioso) {
+                toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+            } else if (automatico) {
+                toast(`Auto-sync: ${pendientes.length} encuesta(s) enviada(s)`, 'info', 2200);
+            }
         } catch {
-            toast('Error al sincronizar. Intenta de nuevo.', 'error');
+            if (!silencioso) toast('Error al sincronizar. Intenta de nuevo.', 'error');
         } finally {
+            syncInProgress = false;
             fab.disabled = false;
-            fab.textContent = '↑';
+            fab.classList.remove('loading');
         }
     }
 

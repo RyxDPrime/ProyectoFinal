@@ -264,6 +264,14 @@
             <label for="filtro-texto"></label><input type="text" id="filtro-texto" placeholder="Ej. María o Santiago" oninput="renderDashboard()" />
           </div>
 
+          <div class="form-group" id="scope-wrap" style="display:none">
+            <label>Alcance</label>
+            <select id="filtro-scope" onchange="cargarDashboard()">
+              <option value="mine">Mis encuestas</option>
+              <option value="all">Listado general</option>
+            </select>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label>Género</label>
@@ -365,6 +373,11 @@
       byId('nav-admin-section').style.display = '';
     }
 
+    if (usuario.rol === 'ENCUESTADOR') {
+      byId('scope-wrap').style.display = '';
+      byId('filtro-scope').value = 'mine';
+    }
+
     Auth.aplicarVisibilidadPorRol();
 
     actualizarConexion();
@@ -392,11 +405,17 @@
 
   async function cargarDashboard() {
     try {
-      todasEncuestas = await API.get('/api/encuestas');
+      const scope = getScopeActual();
+      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
       renderDashboard();
     } catch (err) {
       toast('Error cargando el dashboard: ' + err.message, 'error');
     }
+  }
+
+  function getScopeActual() {
+    if (usuario.rol !== 'ENCUESTADOR') return 'all';
+    return byId('filtro-scope').value || 'mine';
   }
 
   function normalizar(valor) {

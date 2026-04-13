@@ -69,6 +69,10 @@
         <p>Encuestas recibidas y sincronizadas en el servidor.</p>
       </div>
       <div style="display:flex;gap:8px">
+        <select id="filtro-scope" style="width:190px; display:none" onchange="cargarEncuestas()">
+          <option value="mine">Mis encuestas</option>
+          <option value="all">Listado general</option>
+        </select>
         <label for="filtro-texto"></label><input type="text" id="filtro-texto" placeholder="Buscar por nombre o sector..." style="width:240px" oninput="filtrar()" />
         <label for="filtro-nivel"></label><select id="filtro-nivel" style="width:160px" onchange="filtrar()">
         <option value="">Todos los niveles</option>
@@ -143,6 +147,11 @@
     document.getElementById('nav-admin-section').style.display = '';
   }
   Auth.aplicarVisibilidadPorRol();
+  if (usuario.rol === 'ENCUESTADOR') {
+    const scopeSelect = document.getElementById('filtro-scope');
+    scopeSelect.style.display = '';
+    scopeSelect.value = 'mine';
+  }
   // Solo ADMIN puede eliminar
   if (usuario.rol !== 'ADMIN') {
     document.getElementById('btn-eliminar-modal').style.display = 'none';
@@ -204,12 +213,18 @@
 
   async function cargarEncuestas() {
     try {
-      todasEncuestas = await API.get('/api/encuestas');
+      const scope = getScopeActual();
+      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
       actualizarStats();
       renderTabla(todasEncuestas);
     } catch (err) {
       toast('Error cargando encuestas: ' + err.message, 'error');
     }
+  }
+
+  function getScopeActual() {
+    if (usuario.rol !== 'ENCUESTADOR') return 'all';
+    return document.getElementById('filtro-scope').value || 'mine';
   }
 
   function actualizarStats() {

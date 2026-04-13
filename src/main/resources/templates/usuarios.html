@@ -204,6 +204,13 @@
   };
   const rolLabel = { ADMIN: 'Admin', ENCUESTADOR: 'Encuestador', VISUALIZADOR: 'Visualizador' };
 
+  function puedeGestionarUsuario(u) {
+    const userId = normalizarIdMongo(u?.id);
+    const selfId = normalizarIdMongo(usuario?.usuarioId);
+    if (u?.rol === 'ADMIN') return false;
+    return userId !== selfId;
+  }
+
   async function cargarUsuarios() {
     try {
       todosUsuarios = await API.get('/api/usuarios');
@@ -249,8 +256,8 @@
                 <td class="td-mono">${u.creadoEn ? new Date(u.creadoEn).toLocaleDateString('es-DO') : '—'}</td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <button class="btn btn-secondary btn-sm" onclick='abrirCambioRol(${JSON.stringify(u)})'>Rol</button>
-                    <button class="btn btn-danger btn-sm" onclick='eliminarUsuario("${normalizarIdMongo(u.id)}", ${JSON.stringify(u.nombre || '')})'>✕</button>
+                    <button class="btn btn-secondary btn-sm" ${puedeGestionarUsuario(u) ? '' : 'disabled'} onclick='abrirCambioRol(${JSON.stringify(u)})'>Rol</button>
+                    <button class="btn btn-danger btn-sm" ${puedeGestionarUsuario(u) ? '' : 'disabled'} onclick='eliminarUsuario("${normalizarIdMongo(u.id)}", ${JSON.stringify(u.nombre || '')}, ${JSON.stringify(u.rol || '')})'>✕</button>
                   </div>
                 </td>
               </tr>`).join('')}
@@ -317,6 +324,10 @@
 
   // ── Cambio de rol ─────────────────────────────────────────────
   function abrirCambioRol(u) {
+    if (!puedeGestionarUsuario(u)) {
+      toast('No está permitido modificar esta cuenta', 'warning');
+      return;
+    }
     usuarioSeleccionado = u;
     document.getElementById('modal-rol-nombre').textContent = `Usuario: ${u.nombre} (${u.email})`;
     document.getElementById('nuevo-rol').value = u.rol;
@@ -343,7 +354,11 @@
   }
 
   // ── Eliminar ──────────────────────────────────────────────────
-  async function eliminarUsuario(id, nombre) {
+  async function eliminarUsuario(id, nombre, rol = '') {
+    if (rol === 'ADMIN' || normalizarIdMongo(id) === normalizarIdMongo(usuario?.usuarioId)) {
+      toast('No está permitido eliminar esta cuenta', 'warning');
+      return;
+    }
     if (!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
       await API.delete(`/api/usuarios/${id}`);
