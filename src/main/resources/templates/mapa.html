@@ -98,7 +98,13 @@
         <h1>Mapa de encuestas</h1>
         <p>Puntos georeferenciados de todas las encuestas en el servidor.</p>
       </div>
-      <button class="btn btn-secondary" onclick="cargarYRenderizar()">↻ Actualizar</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <select id="filtro-scope" style="width:190px; display:none" onchange="cargarYRenderizar()">
+          <option value="mine">Mis encuestas</option>
+          <option value="all">Listado general</option>
+        </select>
+        <button class="btn btn-secondary" onclick="cargarYRenderizar()">↻ Actualizar</button>
+      </div>
     </div>
 
     <!-- Filtros -->
@@ -134,6 +140,11 @@
   if (usuario.rol === 'ADMIN') {
     document.getElementById('nav-admin-label').style.display = '';
     document.getElementById('nav-admin-section').style.display = '';
+  }
+  if (usuario.rol === 'ENCUESTADOR') {
+    const scopeSelect = document.getElementById('filtro-scope');
+    scopeSelect.style.display = '';
+    scopeSelect.value = 'mine';
   }
   Auth.aplicarVisibilidadPorRol();
 
@@ -183,11 +194,17 @@
 
   async function cargarYRenderizar() {
     try {
-      todasEncuestas = await API.get('/api/encuestas');
+      const scope = getScopeActual();
+      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
       aplicarFiltros();
     } catch (err) {
       toast('Error cargando encuestas: ' + err.message, 'error');
     }
+  }
+
+  function getScopeActual() {
+    if (usuario.rol !== 'ENCUESTADOR') return 'all';
+    return document.getElementById('filtro-scope').value || 'mine';
   }
 
   function aplicarFiltros() {
