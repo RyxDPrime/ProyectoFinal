@@ -18,6 +18,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Controller REST de encuestas.
@@ -56,9 +57,21 @@ public class EncuestaController {
             return;
         }
 
-        List<Encuesta> encuestas = esPrivilegiado(jwt)
-                ? encuestaService.listarTodas()
-                : encuestaService.listarPorUsuario(JwtUtil.extraerUsuarioId(jwt));
+        String rol = JwtUtil.extraerRol(jwt);
+        String usuarioId = JwtUtil.extraerUsuarioId(jwt);
+        String scope = Objects.toString(ctx.queryParam("scope"), "").trim().toLowerCase();
+
+        List<Encuesta> encuestas;
+        boolean quiereTodos = "all".equals(scope);
+        if ("mine".equals(scope)) {
+            encuestas = encuestaService.listarPorUsuario(usuarioId);
+        } else if (quiereTodos && (esPrivilegiado(jwt) || Rol.ENCUESTADOR.name().equals(rol))) {
+            encuestas = encuestaService.listarTodas();
+        } else if (esPrivilegiado(jwt)) {
+            encuestas = encuestaService.listarTodas();
+        } else {
+            encuestas = encuestaService.listarPorUsuario(usuarioId);
+        }
         ctx.status(HttpStatus.OK).json(encuestas);
     }
 
@@ -116,6 +129,11 @@ public class EncuestaController {
     public void crear(Context ctx) {
         var body = ctx.bodyAsClass(EncuestaRequest.class);
 
+        if (!fotoValida(body.fotoBase64)) {
+            ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("mensaje", "La fotografía es obligatoria"));
+            return;
+        }
+
         // Extraer usuario del token
         DecodedJWT jwt;
         try {
@@ -161,6 +179,11 @@ public class EncuestaController {
     public void actualizar(Context ctx) {
         String id   = ctx.pathParam("id");
         var    body = ctx.bodyAsClass(EncuestaRequest.class);
+
+        if (!fotoValida(body.fotoBase64)) {
+            ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("mensaje", "La fotografía es obligatoria"));
+            return;
+        }
 
         DecodedJWT jwt;
         try {
@@ -247,6 +270,10 @@ public class EncuestaController {
 
             // Asignar usuario a cada encuesta del lote
             for (Encuesta e : lote) {
+                if (!fotoValida(e.getFotoBase64())) {
+                    ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("mensaje", "Todas las encuestas deben incluir fotografía"));
+                    return;
+                }
                 if (e.getUsuarioId() == null) {
                     e.setUsuarioId(new ObjectId(usuarioId));
                 }
@@ -293,6 +320,10 @@ public class EncuestaController {
             throw new IllegalArgumentException("Token JWT requerido");
         }
         return header.substring(7);
+    }
+
+    private boolean fotoValida(String base64) {
+        return base64 != null && base64.startsWith("data:image/") && base64.contains(";base64,");
     }
 
     // -------------------------------------------------------------------

@@ -1,5 +1,8 @@
 package edu.pucmm.eict.main.controllers;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import edu.pucmm.eict.main.configuracion.JwtUtil;
 import edu.pucmm.eict.main.modelos.Rol;
 import edu.pucmm.eict.main.modelos.Usuario;
 import edu.pucmm.eict.main.servicios.UsuarioService;
@@ -58,6 +61,31 @@ public class UsuarioController {
         String id   = ctx.pathParam("id");
         var    body = ctx.bodyAsClass(CambiarRolRequest.class);
 
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
+        String actorId = JwtUtil.extraerUsuarioId(jwt);
+
+        var target = usuarioService.buscarPorId(id);
+        if (target.isEmpty()) {
+            ctx.status(HttpStatus.NOT_FOUND).json(Map.of("mensaje", "Usuario no encontrado"));
+            return;
+        }
+
+        if (target.get().getRol() == Rol.ADMIN) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Las cuentas ADMIN no se pueden modificar"));
+            return;
+        }
+
+        if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes modificar tu propia cuenta"));
+            return;
+        }
+
         Rol nuevoRol;
         try {
             nuevoRol = Rol.valueOf(body.rol.toUpperCase());
@@ -80,7 +108,33 @@ public class UsuarioController {
     // DELETE /api/usuarios/{id}
     // -------------------------------------------------------------------
     public void eliminar(Context ctx) {
-        String id       = ctx.pathParam("id");
+        String id = ctx.pathParam("id");
+
+        DecodedJWT jwt;
+        try {
+            jwt = obtenerJwt(ctx);
+        } catch (IllegalArgumentException | JWTVerificationException e) {
+            ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("mensaje", "Token inválido o expirado"));
+            return;
+        }
+        String actorId = JwtUtil.extraerUsuarioId(jwt);
+
+        var target = usuarioService.buscarPorId(id);
+        if (target.isEmpty()) {
+            ctx.status(HttpStatus.NOT_FOUND).json(Map.of("mensaje", "Usuario no encontrado"));
+            return;
+        }
+
+        if (target.get().getRol() == Rol.ADMIN) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Las cuentas ADMIN no se pueden eliminar"));
+            return;
+        }
+
+        if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes eliminar tu propia cuenta"));
+            return;
+        }
+
         boolean borrado = usuarioService.eliminar(id);
 
         if (borrado) {
@@ -96,5 +150,17 @@ public class UsuarioController {
     // -------------------------------------------------------------------
     public static class CambiarRolRequest {
         public String rol;
+    }
+
+    private DecodedJWT obtenerJwt(Context ctx) {
+        return JwtUtil.verificarToken(extraerToken(ctx));
+    }
+
+    private String extraerToken(Context ctx) {
+        String header = ctx.header("Authorization");
+        if (header == null || !header.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Token JWT requerido");
+        }
+        return header.substring(7);
     }
 }
