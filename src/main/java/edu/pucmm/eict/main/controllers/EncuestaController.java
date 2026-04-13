@@ -57,7 +57,6 @@ public class EncuestaController {
             return;
         }
 
-        String rol = JwtUtil.extraerRol(jwt);
         String usuarioId = JwtUtil.extraerUsuarioId(jwt);
         String scope = Objects.toString(ctx.queryParam("scope"), "").trim().toLowerCase();
 
@@ -65,11 +64,15 @@ public class EncuestaController {
         boolean quiereTodos = "all".equals(scope);
         if ("mine".equals(scope)) {
             encuestas = encuestaService.listarPorUsuario(usuarioId);
-        } else if (quiereTodos && (esPrivilegiado(jwt) || Rol.ENCUESTADOR.name().equals(rol))) {
+        } else if (quiereTodos) {
+            // Permite "all" para cualquier ADMIN o VISUALIZADOR
+            // Los ENCUESTADORES pueden pedir "all" pero el frontend no les lo ofrece por defecto
             encuestas = encuestaService.listarTodas();
         } else if (esPrivilegiado(jwt)) {
+            // Si no especifica scope, los privilegiados ven todas
             encuestas = encuestaService.listarTodas();
         } else {
+            // Los ENCUESTADORES sin scope especificado ven sus propias encuestas
             encuestas = encuestaService.listarPorUsuario(usuarioId);
         }
         ctx.status(HttpStatus.OK).json(encuestas);

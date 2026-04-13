@@ -231,13 +231,21 @@ public class Main {
                     ctx.json(Map.of("mensaje", "Recurso no encontrado"))
             );
 
-            config.routes.error(HttpStatus.UNAUTHORIZED, ctx ->
-                    ctx.json(Map.of("mensaje", "No autorizado"))
-            );
+            // Mantener mensajes específicos ya enviados por controllers/middleware.
+            // Solo usar mensaje genérico si no existe cuerpo en la respuesta.
+            config.routes.error(HttpStatus.UNAUTHORIZED, ctx -> {
+                String actual = ctx.result();
+                if (actual == null || actual.isBlank()) {
+                    ctx.json(Map.of("mensaje", "No autorizado"));
+                }
+            });
 
-            config.routes.error(HttpStatus.FORBIDDEN, ctx ->
-                    ctx.json(Map.of("mensaje", "Acceso denegado"))
-            );
+            config.routes.error(HttpStatus.FORBIDDEN, ctx -> {
+                String actual = ctx.result();
+                if (actual == null || actual.isBlank()) {
+                    ctx.json(Map.of("mensaje", "Acceso denegado"));
+                }
+            });
 
         }).start(leerPuerto());
 

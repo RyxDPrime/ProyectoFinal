@@ -23,6 +23,9 @@ import java.util.Map;
  */
 public class UsuarioController {
 
+    // Email del ADMIN superior que no puede ser modificado
+    private static final String ADMIN_SUPERIOR_EMAIL = "admin@pucmm.edu.do";
+
     private final UsuarioService usuarioService;
 
     public UsuarioController(UsuarioService usuarioService) {
@@ -76,11 +79,13 @@ public class UsuarioController {
             return;
         }
 
-        if (target.get().getRol() == Rol.ADMIN) {
-            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Las cuentas ADMIN no se pueden modificar"));
+        // No permitir modificar el ADMIN superior bajo ninguna circunstancia
+        if (esAdminSuperior(target.get())) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "El ADMIN superior no puede ser modificado"));
             return;
         }
 
+        // No permitir modificar la propia cuenta
         if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes modificar tu propia cuenta"));
             return;
@@ -125,11 +130,13 @@ public class UsuarioController {
             return;
         }
 
-        if (target.get().getRol() == Rol.ADMIN) {
-            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "Las cuentas ADMIN no se pueden eliminar"));
+        // No permitir eliminar el ADMIN superior bajo ninguna circunstancia
+        if (esAdminSuperior(target.get())) {
+            ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "El ADMIN superior no puede ser eliminado"));
             return;
         }
 
+        // No permitir eliminar la propia cuenta
         if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes eliminar tu propia cuenta"));
             return;
@@ -162,5 +169,9 @@ public class UsuarioController {
             throw new IllegalArgumentException("Token JWT requerido");
         }
         return header.substring(7);
+    }
+
+    private boolean esAdminSuperior(Usuario usuario) {
+        return usuario != null && ADMIN_SUPERIOR_EMAIL.equals(usuario.getEmail());
     }
 }

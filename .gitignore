@@ -1,0 +1,91 @@
+# ========== Gradle ==========
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# ========== IDE ==========
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ========== Maven ==========
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# ========== Archivos del SO ==========
+.DS_Store
+Thumbs.db
+.Thumbs.db
+*.tmp
+
+# ========== Variables de entorno - IMPORTANTE PARA SEGURIDAD ==========
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ========== Logs ==========
+*.log
+logs/
+*.log.*
+
+# ========== Node modules (si se usan para frontend) ==========
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ========== Base de datos ==========
+*.db
+*.sqlite
+*.sqlite3
+mongodb/data/
+data/
+
+# ========== Compilados y archivos temporales ==========
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+dist/
+out/
+*.o
+*.so
+
+# ========== Docker ==========
+*.dockerfile~
+.docker/
+
+# ========== Certificados y claves ==========
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.jks
+
+# ========== Configuración local ==========
+local.properties
+.local/
+

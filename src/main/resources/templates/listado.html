@@ -131,11 +131,14 @@
     document.getElementById('nav-admin-section').style.display = '';
   }
   Auth.aplicarVisibilidadPorRol();
-  if (usuario.rol === 'ENCUESTADOR') {
+
+  // Mostrar filtro scope para ENCUESTADOR y ADMIN
+  if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
     const scopeSelect = document.getElementById('filtro-scope');
     scopeSelect.style.display = '';
-    scopeSelect.value = 'mine';
+    scopeSelect.value = usuario.rol === 'ENCUESTADOR' ? 'mine' : 'all';
   }
+
   // Solo ADMIN puede eliminar
   if (usuario.rol !== 'ADMIN') {
     document.getElementById('btn-eliminar-modal').style.display = 'none';
@@ -206,8 +209,14 @@
   }
 
   function getScopeActual() {
-    if (usuario.rol !== 'ENCUESTADOR') return 'all';
-    return document.getElementById('filtro-scope').value || 'mine';
+    // Todos pueden especificar scope mediante el select
+    const scopeSelect = document.getElementById('filtro-scope');
+    if (scopeSelect.style.display !== 'none') {
+      // Si el select está visible, usar su valor
+      return scopeSelect.value || 'all';
+    }
+    // VISUALIZADOR no tiene select, siempre retorna 'all'
+    return 'all';
   }
 
 

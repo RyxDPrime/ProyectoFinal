@@ -37,9 +37,19 @@ public class AuthController {
             return;
         }
 
-        if (body == null || body.email == null || body.email.isBlank() || body.password == null || body.password.isBlank()) {
+        if (body == null) {
             ctx.status(HttpStatus.BAD_REQUEST)
-                    .json(Map.of("mensaje", "Email y contraseña son obligatorios"));
+                    .json(Map.of("mensaje", "Solicitud de login inválida"));
+            return;
+        }
+        if (body.email == null || body.email.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                    .json(Map.of("mensaje", "Ingresa tu correo"));
+            return;
+        }
+        if (body.password == null || body.password.isBlank()) {
+            ctx.status(HttpStatus.BAD_REQUEST)
+                    .json(Map.of("mensaje", "Ingresa tu contraseña"));
             return;
         }
 

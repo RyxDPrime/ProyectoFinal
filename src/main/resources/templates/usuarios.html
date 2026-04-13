@@ -107,7 +107,7 @@
 <div class="modal-overlay" id="modal-usuario">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="modal-usuario-titulo">// Nuevo usuario</h3>
+      <h3 id="modal-usuario-titulo">Nuevo usuario</h3>
       <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -147,7 +147,7 @@
 <div class="modal-overlay" id="modal-rol">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <h3>// Cambiar rol</h3>
+      <h3>Cambiar rol</h3>
       <button class="btn btn-ghost btn-sm" onclick="cerrarModalRol()">✕</button>
     </div>
     <div class="modal-body">
@@ -207,8 +207,11 @@
   function puedeGestionarUsuario(u) {
     const userId = normalizarIdMongo(u?.id);
     const selfId = normalizarIdMongo(usuario?.usuarioId);
-    if (u?.rol === 'ADMIN') return false;
-    return userId !== selfId;
+    // No puede gestionar su propia cuenta
+    if (userId === selfId) return false;
+    // No puede gestionar el ADMIN superior (admin@pucmm.edu.do)
+    if (u?.email === 'admin@pucmm.edu.do') return false;
+    return true;
   }
 
   async function cargarUsuarios() {
@@ -355,9 +358,21 @@
 
   // ── Eliminar ──────────────────────────────────────────────────
   async function eliminarUsuario(id, nombre, rol = '') {
-    if (rol === 'ADMIN' || normalizarIdMongo(id) === normalizarIdMongo(usuario?.usuarioId)) {
-      toast('No está permitido eliminar esta cuenta', 'warning');
+    const idNormalizado = normalizarIdMongo(id);
+    const selfId = normalizarIdMongo(usuario?.usuarioId);
+    // No puede eliminar su propia cuenta
+    if (idNormalizado === selfId) {
+      toast('No está permitido eliminar tu propia cuenta', 'warning');
       return;
+    }
+    // No puede eliminar al ADMIN superior
+    if (nombre === 'Administrator' || rol === 'ADMIN' && idNormalizado !== selfId) {
+      // Comparar por email del admin superior
+      const adminSuperior = todosUsuarios.find(u => u.email === 'admin@pucmm.edu.do');
+      if (adminSuperior && normalizarIdMongo(adminSuperior.id) === idNormalizado) {
+        toast('El ADMIN superior no puede ser eliminado', 'warning');
+        return;
+      }
     }
     if (!confirm(`¿Eliminar al usuario "${nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
