@@ -86,22 +86,6 @@
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Total registros</div>
-        <div class="stat-value" id="stat-total">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Con foto</div>
-        <div class="stat-value accent" id="stat-foto">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Con GPS</div>
-        <div class="stat-value success" id="stat-gps">—</div>
-      </div>
-    </div>
-
     <!-- Tabla -->
     <div class="card" style="padding:0; overflow:hidden">
       <div id="tabla-container">
@@ -215,7 +199,6 @@
     try {
       const scope = getScopeActual();
       todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
-      actualizarStats();
       renderTabla(todasEncuestas);
     } catch (err) {
       toast('Error cargando encuestas: ' + err.message, 'error');
@@ -227,11 +210,6 @@
     return document.getElementById('filtro-scope').value || 'mine';
   }
 
-  function actualizarStats() {
-    document.getElementById('stat-total').textContent = todasEncuestas.length;
-    document.getElementById('stat-foto').textContent  = todasEncuestas.filter(e => e.fotoBase64).length;
-    document.getElementById('stat-gps').textContent   = todasEncuestas.filter(e => e.latitud).length;
-  }
 
   function filtrar() {
     const texto = document.getElementById('filtro-texto').value.toLowerCase();
