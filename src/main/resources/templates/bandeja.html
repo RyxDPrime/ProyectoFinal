@@ -455,9 +455,9 @@
     setTimeout(() => modal.querySelector('.modal').style.transform = 'translateY(0)', 10);
   }
 
-  function guardarEdicion() {
+  async function guardarEdicion() {
     if (editIndex === null) return;
-    OfflineDB.actualizar(editIndex, {
+    await OfflineDB.actualizar(editIndex, {
       nombre:       document.getElementById('edit-nombre').value.trim(),
       sector:       document.getElementById('edit-sector').value.trim(),
       nivelEscolar: document.getElementById('edit-nivel').value,

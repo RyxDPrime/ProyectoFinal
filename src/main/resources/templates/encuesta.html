@@ -531,7 +531,7 @@
 
         OfflineDB.guardar(encuesta);
         console.log('[GUARDAR] ✓ Encuesta guardada en bandeja de salida');
-        toast('Encuesta guardada en bandeja de salida ✓', 'success');
+        toast('Encuesta guardada en bandeja de salida', 'success');
         actualizarEstado('En bandeja de salida', 'info');
         limpiarFormulario();
 
@@ -599,7 +599,7 @@
             SyncStats.sumarSincronizadas(pendientes.length);
             actualizarBadges();
             if (!silencioso) {
-                toast(`${pendientes.length} encuesta(s) sincronizada(s) ✓`, 'success');
+                toast(`${pendientes.length} encuesta(s) sincronizada(s)`, 'success');
             } else if (automatico) {
                 toast(`Auto-sync: ${pendientes.length} encuesta(s) enviada(s)`, 'info', 2200);
             }

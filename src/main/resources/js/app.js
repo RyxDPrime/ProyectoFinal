@@ -403,19 +403,26 @@ const OfflineDB = (() => {
         },
 
         eliminar: function(idx) {
-            abrirDB().then(base => {
-                const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
-                const store = tx.objectStore(CONFIG.STORE_PENDIENTES);
-                const req   = store.getAll();
-                req.onsuccess = () => {
-                    const todos = req.result;
-                    if (todos[idx]) {
-                        store.delete(todos[idx]._localId);
-                        this._actualizarCache();
-                        notificarCambioPendientes();
-                    }
-                };
-            }).catch(console.error);
+            return new Promise((resolve, reject) => {
+                abrirDB().then(base => {
+                    const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
+                    const store = tx.objectStore(CONFIG.STORE_PENDIENTES);
+                    const req   = store.getAll();
+                    req.onsuccess = () => {
+                        const todos = req.result;
+                        if (todos[idx]) {
+                            store.delete(todos[idx]._localId);
+                        }
+                    };
+                    tx.oncomplete = () => {
+                        this._actualizarCache().then(() => {
+                            notificarCambioPendientes();
+                            resolve();
+                        }).catch(reject);
+                    };
+                    tx.onerror = () => reject(tx.error);
+                }).catch(reject);
+            });
         },
 
         obtenerPorLocalId: function(localId) {
@@ -431,34 +438,46 @@ const OfflineDB = (() => {
         },
 
         eliminarPorLocalId: function(localId) {
-            abrirDB().then(base => {
-                const tx = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
-                tx.objectStore(CONFIG.STORE_PENDIENTES).delete(localId);
-                tx.oncomplete = () => {
-                    this._actualizarCache();
-                    notificarCambioPendientes();
-                };
-            }).catch(console.error);
+            return new Promise((resolve, reject) => {
+                abrirDB().then(base => {
+                    const tx = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
+                    tx.objectStore(CONFIG.STORE_PENDIENTES).delete(localId);
+                    tx.oncomplete = () => {
+                        this._actualizarCache().then(() => {
+                            notificarCambioPendientes();
+                            resolve();
+                        }).catch(reject);
+                    };
+                    tx.onerror = () => reject(tx.error);
+                }).catch(reject);
+            });
         },
 
         /**
          * Actualiza campos de un registro por índice.
          */
         actualizar: function(idx, cambios) {
-            abrirDB().then(base => {
-                const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
-                const store = tx.objectStore(CONFIG.STORE_PENDIENTES);
-                const req   = store.getAll();
-                req.onsuccess = () => {
-                    const todos = req.result;
-                    if (todos[idx]) {
-                        const actualizado = { ...todos[idx], ...cambios };
-                        store.put(actualizado);
-                        this._actualizarCache();
-                        notificarCambioPendientes();
-                    }
-                };
-            }).catch(console.error);
+            return new Promise((resolve, reject) => {
+                abrirDB().then(base => {
+                    const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
+                    const store = tx.objectStore(CONFIG.STORE_PENDIENTES);
+                    const req   = store.getAll();
+                    req.onsuccess = () => {
+                        const todos = req.result;
+                        if (todos[idx]) {
+                            const actualizado = { ...todos[idx], ...cambios };
+                            store.put(actualizado);
+                        }
+                    };
+                    tx.oncomplete = () => {
+                        this._actualizarCache().then(() => {
+                            notificarCambioPendientes();
+                            resolve();
+                        }).catch(reject);
+                    };
+                    tx.onerror = () => reject(tx.error);
+                }).catch(reject);
+            });
         },
 
         contarPendientes: function() {
@@ -469,16 +488,22 @@ const OfflineDB = (() => {
         },
 
         limpiarSincronizadas: function() {
-            abrirDB().then(base => {
-                const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
-                tx.objectStore(CONFIG.STORE_PENDIENTES).clear();
-                try { sessionStorage.removeItem('enc_cache'); } catch {}
-                notificarCambioPendientes();
-            }).catch(console.error);
+            return new Promise((resolve, reject) => {
+                abrirDB().then(base => {
+                    const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
+                    tx.objectStore(CONFIG.STORE_PENDIENTES).clear();
+                    tx.oncomplete = () => {
+                        try { sessionStorage.removeItem('enc_cache'); } catch {}
+                        notificarCambioPendientes();
+                        resolve();
+                    };
+                    tx.onerror = () => reject(tx.error);
+                }).catch(reject);
+            });
         },
 
         _actualizarCache: function() {
-            this.obtenerTodasAsync().catch(console.error);
+            return this.obtenerTodasAsync();
         },
 
         inicializar: async function() {
