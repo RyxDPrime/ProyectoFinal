@@ -705,3 +705,74 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.warn('[SW] Error al registrar:', err));
     });
 }
+
+// ════════════════════════════════════════════════════════════════════
+// Mobile Menu — Global initialization
+// ════════════════════════════════════════════════════════════════════
+(function() {
+    function getSidebar() {
+        return document.getElementById('sidebar') || document.querySelector('.sidebar');
+    }
+
+    // Función global para toggle menu
+    window.toggleMenu = function() {
+        const sidebar = getSidebar();
+        if (sidebar) {
+            sidebar.classList.toggle('open');
+        }
+    };
+
+    // Mostrar/ocultar botón hamburguesa según ancho
+    function actualizarVisibilidadMenu() {
+        const menuToggle = document.getElementById('menu-toggle');
+        if (menuToggle) {
+            menuToggle.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+        }
+    }
+
+    // Cerrar sidebar al hacer click en un link
+    function cerrarMenuAlClickEnLink() {
+        const sidebar = getSidebar();
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (sidebar && window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        });
+    }
+
+    // Cerrar sidebar al hacer click fuera (en el overlay)
+    function cerrarMenuAlClickFuera() {
+        const sidebar = getSidebar();
+
+        if (sidebar) {
+            sidebar.addEventListener('click', (e) => {
+                if (e.target === sidebar && window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        }
+    }
+
+    // Inicializar en DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarVisibilidadMenu();
+        cerrarMenuAlClickEnLink();
+        cerrarMenuAlClickFuera();
+    });
+
+    // Actualizar al redimensionar
+    window.addEventListener('resize', actualizarVisibilidadMenu);
+
+    // Cerrar menú al presionar ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const sidebar = getSidebar();
+            if (sidebar && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        }
+    });
+})();

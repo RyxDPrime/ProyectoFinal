@@ -145,25 +145,29 @@
       accent-color: var(--accent);
     }
 
-    @media (max-width: 1100px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
+     @media (max-width: 1100px) {
+       .dashboard-grid {
+         grid-template-columns: 1fr;
+       }
 
-      .dashboard-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
+       .dashboard-stats {
+         grid-template-columns: repeat(2, minmax(0, 1fr));
+       }
+     }
 
-    @media (max-width: 720px) {
-      .dashboard-stats {
-        grid-template-columns: 1fr;
-      }
+     @media (max-width: 720px) {
+       .dashboard-stats {
+         grid-template-columns: 1fr;
+       }
 
-      .dashboard-filters .form-row {
-        grid-template-columns: 1fr;
-      }
-    }
+       .dashboard-filters .form-row {
+         grid-template-columns: 1fr;
+       }
+     }
+
+     @media (max-width: 480px) {
+       .dashboard-stat .value { font-size: 1.2rem; }
+     }
   </style>
 </head>
 <body>
@@ -181,10 +185,11 @@
         <span class="role-badge" id="topbar-rol">—</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
 
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
       <a href="/encuesta" class="nav-link">
@@ -366,18 +371,22 @@
     byId('topbar-nombre').textContent = usuario.nombre || usuario.email || '—';
     byId('topbar-rol').textContent = usuario.rol || '—';
 
-    if (usuario.rol === 'ADMIN') {
-      byId('nav-admin-label').style.display = '';
-      byId('nav-admin-section').style.display = '';
-    }
+     if (usuario.rol === 'ADMIN') {
+       byId('nav-admin-label').style.display = '';
+       byId('nav-admin-section').style.display = '';
+     }
 
-    // Mostrar filtro scope para ENCUESTADOR y ADMIN
-    if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
-      byId('filtro-scope').style.display = '';
-      byId('filtro-scope').value = usuario.rol === 'ENCUESTADOR' ? 'mine' : 'all';
-    }
+     if (window.innerWidth < 768) {
+       byId('menu-toggle').style.display = 'flex';
+     }
 
-    Auth.aplicarVisibilidadPorRol();
+     // Mostrar filtro scope para ENCUESTADOR y ADMIN
+     if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
+       byId('filtro-scope').style.display = '';
+       byId('filtro-scope').value = usuario.rol === 'ENCUESTADOR' ? 'mine' : 'all';
+     }
+
+     Auth.aplicarVisibilidadPorRol();
 
     actualizarConexion();
     actualizarBadgePendientes();
@@ -549,19 +558,23 @@
     renderChart(filtradas);
   }
 
-  function limpiarFiltros() {
-    byId('filtro-texto').value = '';
-    byId('filtro-genero').value = '';
-    byId('filtro-tipo-escuela').value = '';
-    byId('filtro-estado-estudio').value = '';
-    byId('filtro-edad-min').value = '';
-    byId('filtro-edad-max').value = '';
-    byId('filtro-con-foto').checked = false;
-    byId('filtro-con-gps').checked = false;
-    renderDashboard();
-  }
+   function limpiarFiltros() {
+     byId('filtro-texto').value = '';
+     byId('filtro-genero').value = '';
+     byId('filtro-tipo-escuela').value = '';
+     byId('filtro-estado-estudio').value = '';
+     byId('filtro-edad-min').value = '';
+     byId('filtro-edad-max').value = '';
+     byId('filtro-con-foto').checked = false;
+     byId('filtro-con-gps').checked = false;
+     renderDashboard();
+   }
 
-  // La actualización del dashboard queda manual para evitar reinicios frecuentes del gráfico.
+   function toggleMenu() {
+     byId('sidebar').classList.toggle('open');
+   }
+
+   // La actualización del dashboard queda manual para evitar reinicios frecuentes del gráfico.
 </script>
 </body>
 </html>

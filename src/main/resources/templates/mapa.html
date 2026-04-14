@@ -52,10 +52,11 @@
         <span class="role-badge" id="topbar-rol">—</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
 
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
       <a href="/encuesta" class="nav-link">
@@ -159,6 +160,7 @@
   // Monitor de conexión
   document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
   document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
+
 
   // ── Mapa Leaflet ──────────────────────────────────────────────
   const map = L.map('map', { zoomControl: true })

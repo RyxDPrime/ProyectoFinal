@@ -26,11 +26,12 @@
         <span class="role-badge" id="topbar-rol">—</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
 
   <!-- Sidebar -->
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
       <a href="/encuesta" class="nav-link">
@@ -560,16 +561,28 @@
     }
   }
 
-  // Monitor de conexión
-  function actualizarConexion() {
-    const online = navigator.onLine;
-    document.getElementById('conn-dot').classList.toggle('offline', !online);
-    document.getElementById('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
-    document.getElementById('btn-sync').disabled = !online;
-  }
-  window.addEventListener('online',  () => { actualizarConexion(); sincronizarTodas({ silencioso: true }); });
-  window.addEventListener('offline', actualizarConexion);
-  actualizarConexion();
+   // Monitor de conexión
+   function actualizarConexion() {
+     const online = navigator.onLine;
+     document.getElementById('conn-dot').classList.toggle('offline', !online);
+     document.getElementById('conn-label').textContent = online ? 'En línea' : 'Sin conexión';
+     document.getElementById('btn-sync').disabled = !online;
+   }
+
+   function toggleMenu() {
+     document.getElementById('sidebar').classList.toggle('open');
+   }
+
+   function mostrarMenuMobile() {
+     if (window.innerWidth < 768) {
+       document.getElementById('menu-toggle').style.display = 'flex';
+     }
+   }
+
+   window.addEventListener('online',  () => { actualizarConexion(); sincronizarTodas({ silencioso: true }); });
+   window.addEventListener('offline', actualizarConexion);
+   actualizarConexion();
+   mostrarMenuMobile();
 
   window.addEventListener('enc-pendientes-changed', renderBandeja);
   autoSyncTimer = setInterval(() => {

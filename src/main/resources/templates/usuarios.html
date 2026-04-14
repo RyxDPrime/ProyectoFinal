@@ -22,10 +22,11 @@
         <span class="role-badge" id="topbar-rol">—</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
 
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
       <a href="/encuesta" class="nav-link">
@@ -194,6 +195,12 @@
   document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
   document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
 
+  // Mobile menu
+  if (window.innerWidth < 768) {
+    document.getElementById('menu-toggle').style.display = 'flex';
+  }
+
+
   let usuarioSeleccionado = null;
   let todosUsuarios = [];
 
@@ -244,23 +251,18 @@
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Email</th>
               <th>Rol</th>
-              <th>Creado</th>
-              <th>Acciones</th>
+              <th>Editar</th>
             </tr>
           </thead>
           <tbody>
             ${todosUsuarios.map(u => `
               <tr>
                 <td><strong>${escapeHtml(u.nombre || '—')}</strong></td>
-                <td class="td-mono">${escapeHtml(u.email || '—')}</td>
                 <td><span class="badge ${rolBadge[u.rol] || ''}">${escapeHtml(rolLabel[u.rol] || u.rol || '—')}</span></td>
-                <td class="td-mono">${u.creadoEn ? new Date(u.creadoEn).toLocaleDateString('es-DO') : '—'}</td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <button class="btn btn-secondary btn-sm" ${puedeGestionarUsuario(u) ? '' : 'disabled'} onclick='abrirCambioRol(${JSON.stringify(u)})'>Rol</button>
-                    <button class="btn btn-danger btn-sm" ${puedeGestionarUsuario(u) ? '' : 'disabled'} onclick='eliminarUsuario("${normalizarIdMongo(u.id)}", ${JSON.stringify(u.nombre || '')}, ${JSON.stringify(u.rol || '')})'>✕</button>
+                    <button class="btn btn-secondary btn-sm" ${puedeGestionarUsuario(u) ? '' : 'disabled'} onclick='abrirCambioRol(${JSON.stringify(u)})'>Editar</button>
                   </div>
                 </td>
               </tr>`).join('')}

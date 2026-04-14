@@ -22,10 +22,11 @@
         <span class="role-badge" id="topbar-rol">—</span>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Salir</button>
+      <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
 
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
       <a href="/encuesta" class="nav-link">
@@ -241,14 +242,13 @@
 
     container.innerHTML = `
       <div class="table-wrapper" style="border:none; border-radius:0">
-        <table>
+        <table class="listado-table">
           <thead>
             <tr>
               <th>#</th>
               <th>Nombre</th>
               <th>Sector</th>
               <th>Nivel</th>
-              <th>Escuela</th>
               <th>Estado</th>
               <th>Fecha</th>
               <th></th>
@@ -261,7 +261,6 @@
                 <td><strong>${escapeHtml(e.nombre || '—')}</strong></td>
                 <td>${escapeHtml(e.sector || '—')}</td>
                 <td>${badgeHtml(nivelLabel[e.nivelEscolar] || e.nivelEscolar || '—', nivelBadgeColor[e.nivelEscolar] || '#64748b')}</td>
-                <td>${badgeHtml(tipoEscuelaLabel[e.tipoEscuela] || e.tipoEscuela || '—', escuelaBadgeColor[e.tipoEscuela] || '#64748b')}</td>
                 <td>${badgeHtml(estadoEstudioLabel[e.estadoEstudio] || e.estadoEstudio || '—', estadoBadgeColor[e.estadoEstudio] || '#64748b')}</td>
                 <td class="td-mono">${e.creadoEn ? new Date(e.creadoEn).toLocaleDateString('es-DO') : '—'}</td>
                 <td>
@@ -401,6 +400,15 @@
   const badge = document.getElementById('nav-badge-pending');
   badge.textContent = pend;
   badge.className = 'nav-badge' + (pend === 0 ? ' zero' : '');
+
+  // Mobile menu
+  if (window.innerWidth < 768) {
+    document.getElementById('menu-toggle').style.display = 'flex';
+  }
+
+  function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
 
   RealtimeWS.suscribirEncuestas(manejarEventoRealtime);
   refreshTimer = setInterval(() => {
