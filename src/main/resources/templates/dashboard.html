@@ -413,7 +413,8 @@
   async function cargarDashboard() {
     try {
       const scope = getScopeActual();
-      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      const respuesta = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      todasEncuestas = API.asArray(respuesta);
       renderDashboard();
     } catch (err) {
       toast('Error cargando el dashboard: ' + err.message, 'error');

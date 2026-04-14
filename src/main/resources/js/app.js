@@ -168,6 +168,15 @@ const API = {
         return data;
     },
 
+    asArray: function(payload) {
+        if (Array.isArray(payload)) return payload;
+        if (!payload || typeof payload !== 'object') return [];
+
+        const candidates = [payload.datos, payload.data, payload.items, payload.resultado, payload.result];
+        const found = candidates.find(Array.isArray);
+        return found || [];
+    },
+
     get: async function(path) {
         const res = await this._withTimeout(
             fetch(CONFIG.API_BASE + path, { headers: this._headers() }),
@@ -526,7 +535,7 @@ const SyncWS = {
         const token = Auth.getToken();
         if (!token) throw new Error('Sin token JWT');
 
-        const limpias = encuestas.map(({ _savedAt, _localId, ...resto }) => resto);
+        const limpias = API.asArray(encuestas).map(({ _savedAt, _localId, ...resto }) => resto);
 
         const res = await fetch('/api/encuestas/sync', {
             method: 'POST',

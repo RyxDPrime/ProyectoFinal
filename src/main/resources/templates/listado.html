@@ -196,7 +196,8 @@
   async function cargarEncuestas() {
     try {
       const scope = getScopeActual();
-      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      const respuesta = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      todasEncuestas = API.asArray(respuesta);
       renderTabla(todasEncuestas);
     } catch (err) {
       toast('Error cargando encuestas: ' + err.message, 'error');
@@ -223,6 +224,7 @@
   }
 
   function renderTabla(encuestas) {
+    encuestas = API.asArray(encuestas);
     encuestasEnVista = encuestas;
     const container = document.getElementById('tabla-container');
 

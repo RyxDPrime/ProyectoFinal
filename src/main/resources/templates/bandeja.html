@@ -234,6 +234,7 @@
   Auth.aplicarVisibilidadPorRol();
 
   let editIndex = null;
+  let editLocalId = null;
   let autoSyncTimer = null;
   let editCameraStream = null;
   let syncInProgress = false;
@@ -266,7 +267,9 @@
       POSTGRADO: 'Postgrado', DOCTORADO: 'Doctorado'
     };
 
-    container.innerHTML = pendientes.map((enc, i) => `
+    container.innerHTML = pendientes.map((enc, i) => {
+      const refId = (typeof enc._localId !== 'undefined' && enc._localId !== null) ? enc._localId : 'null';
+      return `
       <div class="bandeja-item">
         ${safeImageSrc(enc.fotoBase64)
             ? `<img src="${safeImageSrc(enc.fotoBase64)}" alt="Foto de ${escapeHtml(enc.nombre || 'encuestado')}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--radius);flex-shrink:0" />`
@@ -285,11 +288,22 @@
         </div>
         <span class="badge badge-pending">Pendiente</span>
         <div class="bandeja-item-actions">
-          <button class="btn btn-primary btn-sm" title="Sincronizar encuesta" aria-label="Sincronizar encuesta" onclick="sincronizarItem(${i})">Sync</button>
-          <button class="btn btn-ghost btn-sm" title="Editar encuesta" aria-label="Editar encuesta" onclick="editarItem(${i})">Editar</button>
-          <button class="btn btn-danger btn-sm" title="Eliminar encuesta pendiente" aria-label="Eliminar encuesta pendiente" onclick="eliminarItem(${i})">Eliminar</button>
+          <button class="btn btn-primary btn-sm" title="Sincronizar encuesta" aria-label="Sincronizar encuesta" onclick="sincronizarItem(${refId}, ${i})">Sync</button>
+          <button class="btn btn-ghost btn-sm" title="Editar encuesta" aria-label="Editar encuesta" onclick="editarItem(${refId}, ${i})">Editar</button>
+          <button class="btn btn-danger btn-sm" title="Eliminar encuesta pendiente" aria-label="Eliminar encuesta pendiente" onclick="eliminarItem(${refId}, ${i})">Eliminar</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
+  }
+
+  function obtenerPendientePorReferencia(localId, fallbackIndex) {
+    const pendientes = OfflineDB.obtenerTodas();
+    if (typeof localId !== 'undefined' && localId !== null) {
+      const idx = pendientes.findIndex(item => item && item._localId === localId);
+      if (idx >= 0) return { encuesta: pendientes[idx], index: idx };
+    }
+    const idx = Number.isInteger(fallbackIndex) ? fallbackIndex : -1;
+    return (idx >= 0 && pendientes[idx]) ? { encuesta: pendientes[idx], index: idx } : { encuesta: null, index: -1 };
   }
 
   function normalizarNumero(valor) {
@@ -435,9 +449,15 @@
     toast('Foto actualizada', 'success');
   }
 
-  function editarItem(i) {
-    editIndex = i;
-    const enc = OfflineDB.obtenerTodas()[i];
+  function editarItem(localId, fallbackIndex) {
+    const { encuesta: enc, index } = obtenerPendientePorReferencia(localId, fallbackIndex);
+    if (!enc) {
+      toast('La encuesta ya no está disponible en la bandeja', 'warning');
+      renderBandeja();
+      return;
+    }
+    editIndex = index;
+    editLocalId = typeof enc._localId !== 'undefined' ? enc._localId : null;
     document.getElementById('edit-nombre').value = enc.nombre;
     document.getElementById('edit-sector').value  = enc.sector;
     document.getElementById('edit-nivel').value   = enc.nivelEscolar;
@@ -456,8 +476,20 @@
   }
 
   async function guardarEdicion() {
-    if (editIndex === null) return;
-    await OfflineDB.actualizar(editIndex, {
+    if (editIndex === null && editLocalId === null) return;
+    let idx = editIndex;
+    if (editLocalId !== null) {
+      const pendientes = OfflineDB.obtenerTodas();
+      idx = pendientes.findIndex(item => item && item._localId === editLocalId);
+    }
+    if (idx < 0) {
+      toast('No se pudo guardar: la encuesta ya no existe en la bandeja', 'warning');
+      cerrarModal();
+      renderBandeja();
+      return;
+    }
+
+    await OfflineDB.actualizar(idx, {
       nombre:       document.getElementById('edit-nombre').value.trim(),
       sector:       document.getElementById('edit-sector').value.trim(),
       nivelEscolar: document.getElementById('edit-nivel').value,
@@ -474,16 +506,32 @@
     toast('Encuesta actualizada localmente', 'success');
   }
 
-  function eliminarItem(i) {
+  async function eliminarItem(localId, fallbackIndex) {
     if (!confirm('¿Eliminar esta encuesta pendiente?')) return;
-    OfflineDB.eliminar(i);
-    renderBandeja();
-    toast('Encuesta eliminada', 'info');
+    const { encuesta, index } = obtenerPendientePorReferencia(localId, fallbackIndex);
+    if (!encuesta) {
+      toast('La encuesta ya no está disponible en la bandeja', 'warning');
+      renderBandeja();
+      return;
+    }
+
+    try {
+      if (typeof encuesta._localId !== 'undefined') {
+        await OfflineDB.eliminarPorLocalId(encuesta._localId);
+      } else {
+        await OfflineDB.eliminar(index);
+      }
+      renderBandeja();
+      toast('Encuesta eliminada', 'info');
+    } catch (err) {
+      toast('Error al eliminar encuesta: ' + err.message, 'error');
+    }
   }
 
   function cerrarModal() {
     document.getElementById('modal-editar').classList.remove('visible');
     editIndex = null;
+    editLocalId = null;
   }
 
   document.getElementById('edit-foto')?.addEventListener('input', (e) => {
@@ -505,7 +553,7 @@
 
     try {
       await SyncWS.sincronizar(pendientes);
-      OfflineDB.limpiarSincronizadas();
+      await OfflineDB.limpiarSincronizadas();
       SyncStats.sumarSincronizadas(pendientes.length);
       document.getElementById('stat-sync').textContent = SyncStats.obtenerSincronizadasHoy();
       renderBandeja();
@@ -520,12 +568,11 @@
     }
   }
 
-  async function sincronizarItem(i) {
+  async function sincronizarItem(localId, fallbackIndex) {
     if (syncInProgress) return;
     if (!navigator.onLine) { toast('Sin conexión a Internet', 'error'); return; }
 
-    const pendientes = OfflineDB.obtenerTodas();
-    const encuesta = pendientes[i];
+    const { encuesta, index } = obtenerPendientePorReferencia(localId, fallbackIndex);
     if (!encuesta) {
       toast('La encuesta ya no está disponible en la bandeja', 'warning');
       renderBandeja();
@@ -536,9 +583,9 @@
     try {
       await SyncWS.sincronizar([encuesta]);
       if (typeof encuesta._localId !== 'undefined') {
-        OfflineDB.eliminarPorLocalId(encuesta._localId);
+        await OfflineDB.eliminarPorLocalId(encuesta._localId);
       } else {
-        OfflineDB.eliminar(i);
+        await OfflineDB.eliminar(index);
       }
       SyncStats.sumarSincronizadas(1);
       document.getElementById('stat-sync').textContent = SyncStats.obtenerSincronizadasHoy();

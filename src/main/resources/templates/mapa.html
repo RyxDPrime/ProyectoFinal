@@ -191,7 +191,8 @@
   async function cargarYRenderizar() {
     try {
       const scope = getScopeActual();
-      todasEncuestas = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      const respuesta = await API.get(`/api/encuestas?scope=${encodeURIComponent(scope)}`);
+      todasEncuestas = API.asArray(respuesta);
       aplicarFiltros();
     } catch (err) {
       toast('Error cargando encuestas: ' + err.message, 'error');
