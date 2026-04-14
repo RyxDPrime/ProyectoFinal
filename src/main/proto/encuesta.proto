@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package edu.pucmm.eict.main.grpc;
+
+option java_multiple_files = true;
+option java_package = "edu.pucmm.eict.main.grpc";
+
+service EncuestaService {
+  rpc ListarPorUsuario(UsuarioRequest) returns (EncuestaListResponse);
+  rpc CrearEncuesta(EncuestaRequest) returns (EncuestaResponse);
+}
+
+message UsuarioRequest {
+  string usuarioId = 1;
+}
+
+message EncuestaRequest {
+  string usuarioId = 1;
+  string nombre = 2;
+  string sector = 3;
+  string nivelEscolar = 4;
+  double latitud = 5;
+  double longitud = 6;
+  int32 edad = 7;
+  string genero = 8;
+  string tipoEscuela = 9;
+  string estadoEstudio = 10;
+}
+
+message EncuestaResponse {
+  string id = 1;
+  string nombre = 2;
+  string sector = 3;
+  string nivelEscolar = 4;
+  double latitud = 5;
+  double longitud = 6;
+  string usuarioId = 7;
+  string creadoEn = 8;
+  int32 edad = 9;
+  string genero = 10;
+  string tipoEscuela = 11;
+  string estadoEstudio = 12;
+}
+
+message EncuestaListResponse {
+  repeated EncuestaResponse encuestas = 1;
+}

@@ -11,6 +11,7 @@ import edu.pucmm.eict.main.controllers.AuthController;
 import edu.pucmm.eict.main.controllers.EncuestaController;
 import edu.pucmm.eict.main.controllers.SyncWebSocketHandler;
 import edu.pucmm.eict.main.controllers.UsuarioController;
+import edu.pucmm.eict.main.grpc.GrpcServerManager;
 import edu.pucmm.eict.main.modelos.Rol;
 import edu.pucmm.eict.main.servicios.EncuestaService;
 import edu.pucmm.eict.main.servicios.UsuarioService;
@@ -45,6 +46,14 @@ public class Main {
         var db              = MongoConfig.getInstance().getBaseDatos();
         var usuarioService  = new UsuarioService(db);
         var encuestaService = new EncuestaService(db);
+
+        GrpcServerManager grpcServer;
+        try {
+            grpcServer = new GrpcServerManager(encuestaService);
+            grpcServer.start();
+        } catch (IOException e) {
+            throw new RuntimeException("No se pudo iniciar el servidor gRPC", e);
+        }
 
         try {
             usuarioService.inicializarAdminDefecto();
@@ -254,6 +263,7 @@ public class Main {
         // ---------------------------------------------------------------
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("[Main] Apagando servidor...");
+            grpcServer.stop();
             MongoConfig.getInstance().cerrar();
             app.stop();
         }));
@@ -267,6 +277,7 @@ public class Main {
         System.out.println(" Usuarios     → http://localhost:" + leerPuerto() + "/usuarios");
         System.out.println(" Cliente REST → http://localhost:" + leerPuerto() + "/cliente-rest");
         System.out.println(" Cliente gRPC → http://localhost:" + leerPuerto() + "/cliente-grpc");
+        System.out.println(" gRPC Server  → localhost:" + grpcServer.getPort());
         System.out.println(" WebSocket    → ws://localhost:"   + leerPuerto() + "/ws/sync");
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
