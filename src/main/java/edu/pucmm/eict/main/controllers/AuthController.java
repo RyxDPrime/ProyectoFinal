@@ -24,9 +24,6 @@ public class AuthController {
         this.usuarioService = usuarioService;
     }
 
-    // -------------------------------------------------------------------
-    // POST /api/auth/login
-    // -------------------------------------------------------------------
     public void login(Context ctx) {
         LoginRequest body;
         try {
@@ -83,9 +80,6 @@ public class AuthController {
         ));
     }
 
-    // -------------------------------------------------------------------
-    // POST /api/auth/registro
-    // -------------------------------------------------------------------
     public void registro(Context ctx) {
         RegistroRequest body;
         try {
@@ -143,9 +137,7 @@ public class AuthController {
             return false;
         }
     }
-    // -------------------------------------------------------------------
-    // DTOs internos
-    // -------------------------------------------------------------------
+
     public static class LoginRequest {
         public String email;
         public String password;

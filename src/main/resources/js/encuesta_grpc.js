@@ -18,10 +18,6 @@
 
 'use strict';
 
-// ── Codificación/decodificación base64 de mensajes protobuf ──────
-// Implementación manual del wire format de Protocol Buffers
-// (solo los campos que usamos, suficiente para la demo)
-
 const Proto = {
     /**
      * Codifica un mensaje simple como Protobuf binario.
@@ -106,21 +102,18 @@ const Proto = {
             const wireType = tag & 0x7;
 
             if (wireType === 2) {
-                // Length-delimited: string o bytes embebidos
                 const len = bytes[i++];
                 const val = bytes.slice(i, i + len);
                 result[field] = dec.decode(val);
                 i += len;
             } else if (wireType === 1) {
-                // 64-bit: double
                 const buf = bytes.slice(i, i + 8).buffer;
                 result[field] = new DataView(buf).getFloat64(0, true);
                 i += 8;
             } else if (wireType === 0) {
-                // Varint: bool/int
                 result[field] = bytes[i++];
             } else {
-                break; // tipo no soportado, salir
+                break;
             }
         }
         return result;
@@ -178,11 +171,8 @@ class EncuestaGrpcClient {
         const msgBytes = new Uint8Array(Proto.encodeString(1, usuarioId));
         const resBytes = await this._llamar('ListarPorUsuario', msgBytes, token);
 
-        // Parsear EncuestaListResponse: campo 1 = repeated EncuestaResponse
-        // Para la demo, devolvemos los bytes raw y los interpretamos como texto
         if (!resBytes) return [];
 
-        // Intento de decodificación simple
         const dec = new TextDecoder();
         const raw = dec.decode(resBytes);
         return [{ _raw: raw, _bytes: resBytes.length + ' bytes recibidos' }];
@@ -223,5 +213,4 @@ class EncuestaGrpcClient {
     }
 }
 
-// Exportar para uso en el HTML
 window.EncuestaGrpcClient = EncuestaGrpcClient;

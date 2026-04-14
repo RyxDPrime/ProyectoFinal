@@ -25,12 +25,7 @@ public class JwtUtil {
     private static final String ISSUER        = "encuesta-pucmm";
     private static final String PROP_JWT_SECRET = "jwt.secret";
 
-    // Constructor privado — clase de utilidad estática
     private JwtUtil() {}
-
-    // -------------------------------------------------------------------
-    // Algoritmo de firma (HMAC256 con el secret del entorno)
-    // -------------------------------------------------------------------
 
     private static Algorithm algoritmo() {
         String secret = System.getenv("JWT_SECRET");
@@ -42,10 +37,6 @@ public class JwtUtil {
         }
         return Algorithm.HMAC256(secret);
     }
-
-    // -------------------------------------------------------------------
-    // Generar
-    // -------------------------------------------------------------------
 
     /**
      * Genera un token firmado con los datos del usuario.
@@ -65,10 +56,6 @@ public class JwtUtil {
                 .sign(algoritmo());
     }
 
-    // -------------------------------------------------------------------
-    // Verificar
-    // -------------------------------------------------------------------
-
     /**
      * Verifica la firma y la vigencia del token.
      * Lanza JWTVerificationException si es inválido o expirado.
@@ -79,10 +66,6 @@ public class JwtUtil {
                 .build()
                 .verify(token);
     }
-
-    // -------------------------------------------------------------------
-    // Extraer claims (sin reverificar firma — solo para uso interno)
-    // -------------------------------------------------------------------
 
     public static String extraerUsuarioId(DecodedJWT jwt) {
         return jwt.getSubject();

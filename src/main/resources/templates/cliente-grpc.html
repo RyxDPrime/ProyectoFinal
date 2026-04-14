@@ -144,7 +144,6 @@
 
 <div class="grpc-layout">
 
-  <!-- Sidebar -->
   <aside class="grpc-sidebar">
 
     <div>
@@ -157,7 +156,6 @@
 
     <hr class="divider" style="margin:0" />
 
-    <!-- Config proxy -->
     <div>
       <div class="card-title">Configuración del proxy</div>
       <div class="form-group">
@@ -169,7 +167,6 @@
 
     <hr class="divider" style="margin:0" />
 
-    <!-- Autenticación -->
     <div>
       <div class="card-title">Token JWT</div>
       <div class="form-group">
@@ -197,7 +194,6 @@
 
     <hr class="divider" style="margin:0" />
 
-    <!-- ID usuario -->
     <div>
       <div class="card-title">Usuario activo</div>
       <div class="form-group">
@@ -208,12 +204,11 @@
     </div>
 
     <div style="margin-top:auto">
-      <a href="/encuesta" class="btn btn-ghost btn-full btn-sm">← Volver al sistema</a>
+      <a href="/encuesta" class="btn btn-ghost btn-full btn-sm">Volver al sistema</a>
     </div>
 
   </aside>
 
-  <!-- Main -->
   <main class="grpc-main">
 
     <div class="page-header">
@@ -223,14 +218,12 @@
       </div>
     </div>
 
-    <!-- Aviso proxy -->
     <div class="proxy-warning">
-      ⚠️ <strong>Requiere proxy Envoy corriendo</strong> en la URL configurada.<br />
+      <strong>Requiere proxy Envoy corriendo</strong> en la URL configurada.<br />
       Ejecuta: <strong>docker-compose up envoy</strong> para levantar el proxy gRPC-Web.
       El servidor gRPC de Javalin corre en el puerto <strong>9090</strong>.
     </div>
 
-    <!-- Definición proto -->
     <div class="card" style="margin-bottom:24px">
       <div class="card-title">Contrato .proto</div>
       <div class="proto-block"><span class="kw">syntax</span> = <span class="field">"proto3"</span>;
@@ -277,7 +270,6 @@
         }</div>
     </div>
 
-    <!-- RPC 1: ListarPorUsuario -->
     <div class="rpc-card">
       <div class="rpc-header">
         <div>
@@ -293,7 +285,7 @@
         </div>
         <button class="btn btn-primary btn-sm" id="btn-listar" onclick="ejecutarListar()">
           <span class="spinner"></span>
-          <span class="btn-text">▶ Llamar ListarPorUsuario</span>
+          <span class="btn-text">Llamar ListarPorUsuario</span>
         </button>
         <div style="margin-top:16px">
           <div class="grpc-status" id="status-listar" style="display:none"></div>
@@ -302,7 +294,6 @@
       </div>
     </div>
 
-    <!-- RPC 2: CrearEncuesta -->
     <div class="rpc-card" style="margin-bottom:40px">
       <div class="rpc-header">
         <div>
@@ -375,7 +366,7 @@
         </div>
         <button class="btn btn-primary btn-sm" id="btn-crear-grpc" onclick="ejecutarCrear()">
           <span class="spinner"></span>
-          <span class="btn-text">▶ Llamar CrearEncuesta</span>
+          <span class="btn-text">Llamar CrearEncuesta</span>
         </button>
         <div style="margin-top:16px">
           <div class="grpc-status" id="status-crear" style="display:none"></div>
@@ -394,7 +385,6 @@
 <script>
   let tokenGrpc = null;
 
-  // Pre-cargar sesión existente
   if (Auth.estaAutenticado()) {
     tokenGrpc = Auth.getToken();
     const u = Auth.getUsuario();
@@ -447,7 +437,6 @@
     return true;
   }
 
-  // ── Ejecutar ListarPorUsuario ─────────────────────────────────
   async function ejecutarListar() {
     if (!verificarToken()) return;
 
@@ -488,7 +477,6 @@
     }
   }
 
-  // ── Ejecutar CrearEncuesta ────────────────────────────────────
   async function ejecutarCrear() {
     if (!verificarToken()) return;
 

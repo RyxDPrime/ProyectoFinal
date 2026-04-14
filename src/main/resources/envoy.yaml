@@ -48,11 +48,9 @@ static_resources:
                             cluster: grpc_backend
                             timeout: 60s
                 http_filters:
-                  # Filtro gRPC-Web: convierte gRPC-Web → gRPC
                   - name: envoy.filters.http.grpc_web
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
-                  # CORS para peticiones desde el browser
                   - name: envoy.filters.http.cors
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
@@ -65,7 +63,6 @@ static_resources:
       connect_timeout: 5s
       type: LOGICAL_DNS
       lb_policy: ROUND_ROBIN
-      # HTTP/2 requerido para gRPC
       typed_extension_protocol_options:
         envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
           "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
@@ -78,8 +75,6 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      # "host.docker.internal" permite acceder al Javalin
-                      # corriendo fuera de Docker (en el host)
                       address: host.docker.internal
                       port_value: 9090
 

@@ -35,7 +35,6 @@ public class EncuestaGrpcService extends EncuestaServiceGrpc.EncuestaServiceImpl
                 throw Status.INVALID_ARGUMENT.withDescription("usuarioId invalido").asRuntimeException();
             }
 
-            // Igual que en REST: solo ADMIN puede consultar otros usuarios.
             if (!Rol.ADMIN.name().equals(rol) && !usuarioRequest.equals(usuarioToken)) {
                 throw Status.PERMISSION_DENIED.withDescription("Acceso denegado").asRuntimeException();
             }

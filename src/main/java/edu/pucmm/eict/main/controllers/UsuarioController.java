@@ -23,7 +23,6 @@ import java.util.Map;
  */
 public class UsuarioController {
 
-    // Email del ADMIN superior que no puede ser modificado
     private static final String ADMIN_SUPERIOR_EMAIL = "admin@pucmm.edu.do";
 
     private final UsuarioService usuarioService;
@@ -32,19 +31,12 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    // -------------------------------------------------------------------
-    // GET /api/usuarios
-    // -------------------------------------------------------------------
     public void listarTodos(Context ctx) {
         List<Usuario> usuarios = usuarioService.listarTodos();
-        // No exponer el passwordHash en la respuesta
         usuarios.forEach(u -> u.setPasswordHash(null));
         ctx.status(HttpStatus.OK).json(usuarios);
     }
 
-    // -------------------------------------------------------------------
-    // GET /api/usuarios/{id}
-    // -------------------------------------------------------------------
     public void buscarPorId(Context ctx) {
         String id = ctx.pathParam("id");
         usuarioService.buscarPorId(id)
@@ -57,9 +49,6 @@ public class UsuarioController {
                 );
     }
 
-    // -------------------------------------------------------------------
-    // PUT /api/usuarios/{id}/rol
-    // -------------------------------------------------------------------
     public void cambiarRol(Context ctx) {
         String id   = ctx.pathParam("id");
         var    body = ctx.bodyAsClass(CambiarRolRequest.class);
@@ -79,13 +68,11 @@ public class UsuarioController {
             return;
         }
 
-        // No permitir modificar el ADMIN superior bajo ninguna circunstancia
         if (esAdminSuperior(target.get())) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "El ADMIN superior no puede ser modificado"));
             return;
         }
 
-        // No permitir modificar la propia cuenta
         if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes modificar tu propia cuenta"));
             return;
@@ -109,9 +96,6 @@ public class UsuarioController {
         }
     }
 
-    // -------------------------------------------------------------------
-    // DELETE /api/usuarios/{id}
-    // -------------------------------------------------------------------
     public void eliminar(Context ctx) {
         String id = ctx.pathParam("id");
 
@@ -130,13 +114,11 @@ public class UsuarioController {
             return;
         }
 
-        // No permitir eliminar el ADMIN superior bajo ninguna circunstancia
         if (esAdminSuperior(target.get())) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "El ADMIN superior no puede ser eliminado"));
             return;
         }
 
-        // No permitir eliminar la propia cuenta
         if (target.get().getId() != null && target.get().getId().toHexString().equals(actorId)) {
             ctx.status(HttpStatus.FORBIDDEN).json(Map.of("mensaje", "No puedes eliminar tu propia cuenta"));
             return;
@@ -152,9 +134,6 @@ public class UsuarioController {
         }
     }
 
-    // -------------------------------------------------------------------
-    // DTO interno
-    // -------------------------------------------------------------------
     public static class CambiarRolRequest {
         public String rol;
     }

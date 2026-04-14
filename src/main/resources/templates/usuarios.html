@@ -75,7 +75,6 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Total usuarios</div>
@@ -95,7 +94,6 @@
       </div>
     </div>
 
-    <!-- Tabla -->
     <div class="card" style="padding:0; overflow:hidden">
       <div id="tabla-usuarios">
         <div class="empty-state"><div class="empty-icon">⟳</div>Cargando usuarios...</div>
@@ -104,7 +102,6 @@
   </main>
 </div>
 
-<!-- Modal nuevo / editar usuario -->
 <div class="modal-overlay" id="modal-usuario">
   <div class="modal">
     <div class="modal-header">
@@ -144,7 +141,6 @@
   </div>
 </div>
 
-<!-- Modal cambiar rol -->
 <div class="modal-overlay" id="modal-rol">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
@@ -179,14 +175,12 @@
   document.getElementById('topbar-nombre').textContent = usuario.nombre || usuario.email;
   document.getElementById('topbar-rol').textContent    = usuario.rol;
 
-  // Solo ADMIN puede entrar aquí
   if (usuario.rol !== 'ADMIN') {
     window.location.href = Auth.getRutaInicioPorRol();
   }
 
   Auth.aplicarVisibilidadPorRol();
 
-  // Badge pendientes
   const pend = OfflineDB.contarPendientes();
   const badge = document.getElementById('nav-badge-pending');
   badge.textContent = pend;
@@ -195,7 +189,6 @@
   document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
   document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
 
-  // Mobile menu
   if (window.innerWidth < 768) {
     document.getElementById('menu-toggle').style.display = 'flex';
   }
@@ -214,9 +207,7 @@
   function puedeGestionarUsuario(u) {
     const userId = normalizarIdMongo(u?.id);
     const selfId = normalizarIdMongo(usuario?.usuarioId);
-    // No puede gestionar su propia cuenta
     if (userId === selfId) return false;
-    // No puede gestionar el ADMIN superior (admin@pucmm.edu.do)
     if (u?.email === 'admin@pucmm.edu.do') return false;
     return true;
   }
@@ -271,10 +262,9 @@
       </div>`;
   }
 
-  // ── Nuevo usuario ─────────────────────────────────────────────
   function abrirModalNuevo() {
     usuarioSeleccionado = null;
-    document.getElementById('modal-usuario-titulo').textContent = '// Nuevo usuario';
+    document.getElementById('modal-usuario-titulo').textContent = 'Nuevo usuario';
     document.getElementById('btn-guardar-usuario').querySelector('.btn-text').textContent = 'Crear usuario';
     document.getElementById('u-email-group').style.display = '';
     document.getElementById('u-pwd-group').style.display   = '';
@@ -327,7 +317,6 @@
     document.getElementById('modal-usuario').classList.remove('visible');
   }
 
-  // ── Cambio de rol ─────────────────────────────────────────────
   function abrirCambioRol(u) {
     if (!puedeGestionarUsuario(u)) {
       toast('No está permitido modificar esta cuenta', 'warning');
@@ -358,18 +347,14 @@
     usuarioSeleccionado = null;
   }
 
-  // ── Eliminar ──────────────────────────────────────────────────
   async function eliminarUsuario(id, nombre, rol = '') {
     const idNormalizado = normalizarIdMongo(id);
     const selfId = normalizarIdMongo(usuario?.usuarioId);
-    // No puede eliminar su propia cuenta
     if (idNormalizado === selfId) {
       toast('No está permitido eliminar tu propia cuenta', 'warning');
       return;
     }
-    // No puede eliminar al ADMIN superior
     if (nombre === 'Administrator' || rol === 'ADMIN' && idNormalizado !== selfId) {
-      // Comparar por email del admin superior
       const adminSuperior = todosUsuarios.find(u => u.email === 'admin@pucmm.edu.do');
       if (adminSuperior && normalizarIdMongo(adminSuperior.id) === idNormalizado) {
         toast('El ADMIN superior no puede ser eliminado', 'warning');

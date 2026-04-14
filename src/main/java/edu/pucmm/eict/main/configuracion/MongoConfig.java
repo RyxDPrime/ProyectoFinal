@@ -36,14 +36,9 @@ public class MongoConfig {
     private final MongoClient   cliente;
     private final MongoDatabase baseDatos;
 
-    // -------------------------------------------------------------------
-    // Constructor privado (Singleton)
-    // -------------------------------------------------------------------
-
     private MongoConfig() {
         String uri = resolverMongoUri();
 
-        // Codec que convierte automáticamente los POJOs anotados con @BsonId / @BsonProperty
         CodecRegistry pojoRegistry = fromProviders(
                 PojoCodecProvider.builder()
                         .automatic(true)
@@ -70,8 +65,6 @@ public class MongoConfig {
         this.cliente    = MongoClients.create(settings);
         this.baseDatos  = cliente.getDatabase(NOMBRE_BD).withCodecRegistry(registry);
 
-        // No forzar un ping aquí: el servidor web debe poder arrancar
-        // aunque MongoDB no esté disponible todavía.
         try {
             baseDatos.runCommand(new Document("ping", 1));
         } catch (MongoException e) {
@@ -94,10 +87,6 @@ public class MongoConfig {
         return URI_POR_DEFECTO;
     }
 
-    // -------------------------------------------------------------------
-    // Acceso global
-    // -------------------------------------------------------------------
-
     public static synchronized MongoConfig getInstance() {
         if (instancia == null) {
             instancia = new MongoConfig();
@@ -108,10 +97,6 @@ public class MongoConfig {
     public MongoDatabase getBaseDatos() {
         return baseDatos;
     }
-
-    // -------------------------------------------------------------------
-    // Cierre limpio de la conexión
-    // -------------------------------------------------------------------
 
     public void cerrar() {
         if (cliente != null) {

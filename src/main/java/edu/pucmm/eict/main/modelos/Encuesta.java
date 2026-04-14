@@ -8,41 +8,11 @@ import java.time.Instant;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-/**
- * Representa un formulario de encuesta capturado en campo.
- *
- * Colección MongoDB: encuestas
- *
- * Campos del encuestado (req. 6):
- *   nombre        - Nombre del encuestado
- *   sector        - Sector geográfico donde se realizó
- *   nivel_escolar - Nivel académico del encuestado
- *   edad          - Edad del encuestado
- *   genero        - Género del encuestado
- *   tipo_escuela  - Público o privado
- *   estado_estudio- Estado de estudio
- *
- * Trazabilidad (req. 6, 10):
- *   usuario_id    - ObjectId del usuario que registró el formulario
- *   usuario_nombre- Nombre del usuario (desnormalizado para evitar joins)
- *
- * Geolocalización (req. 7):
- *   latitud       - Latitud GPS al momento del registro
- *   longitud      - Longitud GPS al momento del registro
- *
- * Multimedia (req. 14):
- *   foto_base64   - Foto tomada desde el dispositivo, codificada en Base64
- *
- * Sincronización offline (req. 8, 11):
- *   sincronizado  - true cuando ya fue enviado al servidor
- *   creado_en     - Timestamp de captura (puede ser offline)
- */
 public class Encuesta {
 
     @BsonId
     private ObjectId id;
 
-    // Datos del encuestado
     @BsonProperty("nombre")
     private String nombre;
 
@@ -64,34 +34,26 @@ public class Encuesta {
     @BsonProperty("estado_estudio")
     private String estadoEstudio;
 
-    // Trazabilidad del usuario que registró
     @BsonProperty("usuario_id")
     private ObjectId usuarioId;
 
     @BsonProperty("usuario_nombre")
     private String usuarioNombre;
 
-    // Geolocalización
     @BsonProperty("latitud")
     private Double latitud;
 
     @BsonProperty("longitud")
     private Double longitud;
 
-    // Foto del dispositivo en Base64
     @BsonProperty("foto_base64")
     private String fotoBase64;
 
-    // Control de sincronización offline→servidor
     @BsonProperty("sincronizado")
     private boolean sincronizado;
 
     @BsonProperty("creado_en")
     private Instant creadoEn;
-
-    // -------------------------------------------------------------------
-    // Constructores
-    // -------------------------------------------------------------------
 
     public Encuesta() {}
 
@@ -115,10 +77,6 @@ public class Encuesta {
         this.sincronizado  = true;
         this.creadoEn      = Instant.now();
     }
-
-    // -------------------------------------------------------------------
-    // Getters y Setters
-    // -------------------------------------------------------------------
 
     public ObjectId getId() { return id; }
     public void setId(ObjectId id) { this.id = id; }
@@ -165,9 +123,6 @@ public class Encuesta {
     public Instant getCreadoEn() { return creadoEn; }
     public void setCreadoEn(Instant creadoEn) { this.creadoEn = creadoEn; }
 
-    // -------------------------------------------------------------------
-    // Utilidades
-    // -------------------------------------------------------------------
 
     @Override
     public String toString() {

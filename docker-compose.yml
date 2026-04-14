@@ -10,16 +10,9 @@ services:
     ports:
       - "${APP_PORT:-8000}:8000"
     environment:
-      # Puerto interno
       PORT: ${PORT:-8000}
-
-      # MongoDB Atlas URI (desde .env)
       MONGO_URI: ${MONGO_URI:?Error: MONGO_URI no definida en .env}
-
-      # JWT Secret para tokens
       JWT_SECRET: ${JWT_SECRET:?Error: JWT_SECRET no definida en .env}
-
-      # Ambiente
       ENV: ${ENV:-production}
 
     networks:
@@ -32,7 +25,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Proxy Envoy (opcional, para gRPC)
   envoy:
     image: envoyproxy/envoy:v1.27-latest
     container_name: proyecto-final-envoy

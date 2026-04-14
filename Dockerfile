@@ -1,15 +1,11 @@
-# syntax=docker/dockerfile:1.7
-
 FROM eclipse-temurin:25-jdk-jammy AS build
 
 WORKDIR /workspace
 
-# Copiamos primero los archivos de build para aprovechar caché de dependencias.
 COPY gradlew build.gradle settings.gradle ./
 COPY gradle ./gradle
 RUN chmod +x gradlew && ./gradlew --no-daemon dependencies || true
 
-# Luego copiamos el código fuente y compilamos el JAR final.
 COPY src ./src
 RUN ./gradlew --no-daemon clean shadowJar -x test
 
@@ -28,4 +24,3 @@ USER appuser
 EXPOSE 8000
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-

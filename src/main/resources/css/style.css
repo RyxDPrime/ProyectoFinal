@@ -1,38 +1,25 @@
-/* ============================================================
-   ENCUESTA PUCMM — Sistema de Captura de Campo
-   Estética: Industrial / Utilitario de campo
-   Tipografía: IBM Plex Mono (display) + IBM Plex Sans (cuerpo)
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
 
-/* ── Variables ─────────────────────────────────────────────── */
 :root {
-    /* Fondos — Modo Claro #E1F0FF   */
     --bg: #E1F0FF;
     --bg-panel:    #FFFFFF;
     --bg-card:     #FFFFFF;
     --bg-input:    #F8F9FA;
     --border:      #DEE2E6;
     --border-active: #0D6EFD;
-
-    /* Colores Primarios — Accesibilidad WCAG 2.1 */
     --accent:      #0D6EFD;
     --accent-dim:  #E7F1FF;
     --accent-glow: rgba(13,110,253,0.1);
 
-    /* Textos — Contraste >= 4.5:1 */
     --text:        #212529;
     --text-muted:  #6C757D;
     --text-faint:  #ADB5BD;
 
-    /* Estados Semánticos */
     --success:     #198754;
     --danger:      #DC3545;
     --warning:     #FFC107;
     --info:        #0DCAF0;
 
-    /* Sombras suaves para modo claro */
     --radius:      4px;
     --radius-lg:   8px;
     --font-mono:   'IBM Plex Mono', monospace;
@@ -42,7 +29,6 @@
     --shadow:      0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; scroll-behavior: smooth; }
@@ -56,7 +42,6 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Ruido de fondo sutil — modo claro muy suave */
 body::before {
     content: '';
     position: fixed;
@@ -68,7 +53,6 @@ body::before {
     opacity: 0.3;
 }
 
-/* ── Tipografía ─────────────────────────────────────────────── */
 h1, h2, h3, h4 {
     font-family: var(--font-mono), monospace;
     font-weight: 700;
@@ -85,7 +69,6 @@ p { color: var(--text-muted); font-size: 0.9rem; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* ── Layout principal ───────────────────────────────────────── */
 .app-layout {
     display: grid;
     grid-template-columns: 240px 1fr;
@@ -95,7 +78,6 @@ a:hover { text-decoration: underline; }
     z-index: 1;
 }
 
-/* ── Topbar ─────────────────────────────────────────────────── */
 .topbar {
     grid-column: 1 / -1;
     display: flex;
@@ -161,7 +143,6 @@ a:hover { text-decoration: underline; }
     text-transform: uppercase;
 }
 
-/* Indicador de conexión */
 .conn-status {
     display: flex;
     align-items: center;
@@ -178,7 +159,6 @@ a:hover { text-decoration: underline; }
 }
 .conn-dot.offline { background: var(--danger); }
 
-/* ── Sidebar ────────────────────────────────────────────────── */
 .sidebar {
     background: var(--bg-panel);
     border-right: 1px solid var(--border);
@@ -265,7 +245,6 @@ a:hover { text-decoration: underline; }
 
 .nav-badge.zero { background: #ADB5BD; }
 
-/* ── Contenido principal ────────────────────────────────────── */
 .main-content {
     padding: 32px;
     overflow-y: auto;
@@ -273,7 +252,6 @@ a:hover { text-decoration: underline; }
     z-index: 1;
 }
 
-/* ── Page header ────────────────────────────────────────────── */
 .page-header {
     margin-bottom: 32px;
     display: flex;
@@ -286,7 +264,6 @@ a:hover { text-decoration: underline; }
 .page-header-left h1 { color: var(--text); }
 .page-header-left p { margin-top: 4px; }
 
-/* ── Cards ──────────────────────────────────────────────────── */
 .card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -326,7 +303,6 @@ a:hover { text-decoration: underline; }
     font-weight: 700;
 }
 
-/* ── Formularios ────────────────────────────────────────────── */
 .form-group {
     margin-bottom: 20px;
 }
@@ -401,7 +377,6 @@ textarea { resize: vertical; min-height: 80px; }
 
 .form-error.visible { display: block; }
 
-/* ── Botones ────────────────────────────────────────────────── */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -470,7 +445,6 @@ textarea { resize: vertical; min-height: 80px; }
 .btn-lg { padding: 13px 28px; font-size: 0.85rem; }
 .btn-full { width: 100%; }
 
-/* Spinner dentro de botón */
 .btn .spinner {
     width: 14px; height: 14px;
     border: 2px solid rgba(13,110,253,0.3);
@@ -489,7 +463,6 @@ textarea { resize: vertical; min-height: 80px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Tabla ──────────────────────────────────────────────────── */
 .table-wrapper {
     overflow-x: auto;
     border: 1px solid var(--border);
@@ -539,7 +512,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     color: var(--text-muted);
 }
 
-/* Responsive tabla */
 @media (max-width: 768px) {
     .table-wrapper {
         border-radius: var(--radius);
@@ -558,7 +530,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
         padding: 8px 6px;
     }
 
-    /* Compactar SOLO la tabla de listado en móvil */
     table.listado-table th:nth-child(1),
     table.listado-table td:nth-child(1),
     table.listado-table th:nth-child(6),
@@ -581,7 +552,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
         padding: 6px 4px;
     }
 
-    /* En movil pequeno mantener Nombre + Nivel + Acciones */
     table.listado-table th:nth-child(3),
     table.listado-table td:nth-child(3),
     table.listado-table th:nth-child(5),
@@ -599,7 +569,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     }
 }
 
-/* ── Badges ─────────────────────────────────────────────────── */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -618,7 +587,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 .badge-sync     { background: rgba(25,135,84,0.1);   color: #198754; }
 .badge-pending  { background: rgba(220,53,69,0.1);   color: #DC3545; }
 
-/* ── Alertas / Toast ────────────────────────────────────────── */
 .toast-container {
     position: fixed;
     bottom: 24px;
@@ -661,7 +629,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 .toast-info    { border-left: 3px solid #0DCAF0; }
 .toast-warning { border-left: 3px solid #FFC107; }
 
-/* ── Modales ────────────────────────────────────────────────── */
 .modal-overlay {
     display: none !important;
     position: fixed;
@@ -731,7 +698,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     justify-content: flex-end;
 }
 
-/* ── Captura de foto ────────────────────────────────────────── */
 .photo-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius-lg);
@@ -777,7 +743,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     gap: 4px;
 }
 
-/* ── GPS block ──────────────────────────────────────────────── */
 .gps-display {
     display: flex;
     align-items: center;
@@ -798,7 +763,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 .gps-coords .coord { color: #0D6EFD; }
 .gps-coords.empty { color: #ADB5BD; }
 
-/* ── Bandeja offline ────────────────────────────────────────── */
 .bandeja-header {
     display: flex;
     align-items: center;
@@ -853,7 +817,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     margin-left: auto;
 }
 
-/* ── Stats cards ────────────────────────────────────────────── */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -889,7 +852,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 .stat-value.danger { color: #DC3545; }
 .stat-value.success { color: #198754; }
 
-/* ── Mapa ───────────────────────────────────────────────────── */
 #map {
     width: 100%;
     height: 480px;
@@ -898,7 +860,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     z-index: 1;
 }
 
-/* ── Login page ─────────────────────────────────────────────── */
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -942,7 +903,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     margin: 12px auto;
 }
 
-/* ── Empty state ────────────────────────────────────────────── */
 .empty-state {
     text-align: center;
     padding: 60px 24px;
@@ -957,14 +917,12 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     opacity: 0.4;
 }
 
-/* ── Divider ────────────────────────────────────────────────── */
 .divider {
     border: none;
     border-top: 1px solid var(--border);
     margin: 24px 0;
 }
 
-/* ── Grid de 2 columnas para formularios ────────────────────── */
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -973,7 +931,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
 
 .form-grid .span-2 { grid-column: span 2; }
 
-/* ── Animación entrada de página ────────────────────────────── */
 .page-enter {
     animation: page-in 250ms ease forwards;
 }
@@ -983,13 +940,11 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
 
-/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
     html { font-size: 15px; }
 
@@ -1370,7 +1325,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     }
 }
 
-/* ── Camera modal ───────────────────────────────────────────── */
 #camera-video {
     width: 100%;
     border-radius: var(--radius);
@@ -1386,7 +1340,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     justify-content: center;
 }
 
-/* ── Sync progress ──────────────────────────────────────────── */
 .sync-bar {
     height: 2px;
     background: #DEE2E6;
@@ -1403,7 +1356,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     border-radius: 1px;
 }
 
-/* ── Encuesta grid ────────────────────────────────────────── */
 .encuesta-grid {
     display: grid;
     grid-template-columns: 1fr 360px;
@@ -1504,7 +1456,6 @@ tbody tr:hover { background: rgba(255,255,255,0.02); }
     }
 }
 
-/* ── FAB sync button ────────────────────────────────────── */
 .fab-sync {
     position: fixed;
     bottom: 24px;

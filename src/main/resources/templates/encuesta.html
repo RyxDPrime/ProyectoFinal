@@ -10,7 +10,6 @@
 
 <div class="app-layout">
 
-    <!-- Topbar -->
     <header class="topbar">
         <div class="topbar-brand">
             <div class="accent-dot"></div>
@@ -30,7 +29,6 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="nav-section-label" data-feature="captura">Captura</div>
         <div class="nav-section" data-feature="captura">
@@ -70,7 +68,6 @@
         </div>
     </nav>
 
-    <!-- Contenido -->
     <main class="main-content page-enter">
         <div class="page-header">
             <div class="page-header-left">
@@ -81,7 +78,6 @@
 
         <div style="display:grid; grid-template-columns: 1fr; gap:24px; align-items:start" class="encuesta-grid">
 
-            <!-- Formulario principal -->
             <div class="card">
                 <div class="card-title">Datos del encuestado</div>
                 <form id="form-encuesta">
@@ -176,10 +172,8 @@
                 </form>
             </div>
 
-            <!-- Panel lateral: foto + estado -->
             <div style="display:flex; flex-direction:column; gap:16px">
 
-                <!-- Captura de foto -->
                 <div class="card">
                     <div class="card-title">Fotografía</div>
                     <div class="photo-zone" id="photo-zone" onclick="abrirCamara()">
@@ -196,7 +190,6 @@
                     <input type="file" id="file-input" accept="image/*" capture="environment" style="display:none" />
                 </div>
 
-                <!-- Estado de guardado -->
                 <div class="card" id="estado-card">
                     <div class="card-title">Estado</div>
                     <div id="estado-content">
@@ -206,7 +199,6 @@
                     </div>
                 </div>
 
-                <!-- Indicador offline -->
                 <div class="card" id="offline-notice" style="display:none; border-color:var(--warning)">
                     <div style="display:flex; align-items:center; gap:10px">
                         <span style="font-size:1.2rem">⚠️</span>
@@ -222,7 +214,6 @@
     </main>
 </div>
 
-<!-- Modal cámara -->
 <div class="modal-overlay" id="modal-camara" style="display:none">
     <div class="modal" style="max-width:480px">
         <div class="modal-header">
@@ -233,18 +224,16 @@
             <video id="camera-video" autoplay playsinline></video>
             <div class="camera-actions">
                 <button class="btn btn-ghost" onclick="cerrarCamara()">Cancelar</button>
-                <button class="btn btn-primary" onclick="tomarFoto()">📷 Capturar</button>
-                <button class="btn btn-secondary btn-sm" onclick="usarArchivo()">📁 Desde galería</button>
+                <button class="btn btn-primary" onclick="tomarFoto()">Capturar</button>
+                <button class="btn btn-secondary btn-sm" onclick="usarArchivo()">Desde galeria</button>
             </div>
         </div>
         <canvas id="camera-canvas" style="display:none"></canvas>
     </div>
 </div>
 
-<!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
-<!-- FAB sincronizar -->
 <button class="fab-sync no-pending" id="fab-sync" data-feature="sync" onclick="sincronizarPendientes()" title="Sincronizar pendientes">
     ↑
     <span class="fab-badge" id="fab-badge">0</span>
@@ -440,7 +429,7 @@
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-        const fotoData = canvas.toDataURL('image/jpeg', 0.6);  // 60% de calidad
+        const fotoData = canvas.toDataURL('image/jpeg', 0.6);
         comprimirYAsignarFoto(fotoData);
         cerrarCamara();
     }
@@ -482,7 +471,7 @@
             canvas.width = width;
             canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            const comprimida = canvas.toDataURL('image/jpeg', 0.6);  // 60% de calidad
+            const comprimida = canvas.toDataURL('image/jpeg', 0.6);
             asignarFoto(comprimida);
         };
         img.src = base64;
@@ -540,8 +529,6 @@
             usuarioNombre: usuario.nombre || usuario.email || null,
         };
 
-        // SIEMPRE guardar en bandeja de salida (offline)
-        // El usuario puede modificar o borrar antes de sincronizar (requisito 11)
         OfflineDB.guardar(encuesta);
         console.log('[GUARDAR] ✓ Encuesta guardada en bandeja de salida');
         toast('Encuesta guardada en bandeja de salida ✓', 'success');

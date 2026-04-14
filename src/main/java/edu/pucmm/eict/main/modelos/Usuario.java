@@ -6,19 +6,6 @@ import org.bson.types.ObjectId;
 
 import java.time.Instant;
 
-/**
- * Representa un usuario del sistema.
- *
- * Colección MongoDB: usuarios
- *
- * Campos:
- *   _id          - ObjectId generado por MongoDB
- *   nombre       - Nombre completo del usuario
- *   email        - Correo único, usado como login
- *   password_hash- Contraseña hasheada con BCrypt (nunca texto plano)
- *   rol          - Enum: ADMIN | ENCUESTADOR | VISUALIZADOR
- *   creado_en    - Timestamp de creación
- */
 public class Usuario {
 
     @BsonId
@@ -39,10 +26,6 @@ public class Usuario {
     @BsonProperty("creado_en")
     private Instant creadoEn;
 
-    // -------------------------------------------------------------------
-    // Constructores
-    // -------------------------------------------------------------------
-
     public Usuario() {}
 
     public Usuario(String nombre, String email, String passwordHash, Rol rol) {
@@ -53,10 +36,6 @@ public class Usuario {
         this.rol          = rol;
         this.creadoEn     = Instant.now();
     }
-
-    // -------------------------------------------------------------------
-    // Getters y Setters
-    // -------------------------------------------------------------------
 
     public ObjectId getId() { return id; }
     public void setId(ObjectId id) { this.id = id; }
@@ -75,10 +54,6 @@ public class Usuario {
 
     public Instant getCreadoEn() { return creadoEn; }
     public void setCreadoEn(Instant creadoEn) { this.creadoEn = creadoEn; }
-
-    // -------------------------------------------------------------------
-    // Utilidades
-    // -------------------------------------------------------------------
 
     @Override
     public String toString() {

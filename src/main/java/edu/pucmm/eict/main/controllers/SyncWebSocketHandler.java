@@ -32,9 +32,6 @@ import java.time.Instant;
  */
 public class SyncWebSocketHandler implements Consumer<WsConfig> {
 
-    // -------------------------------------------------------------------
-    // Estado por sesión: identidad de Session WebSocket → datos de sesión
-    // -------------------------------------------------------------------
     private static class SesionWs {
         final String id;
         final WsContext ctx;
@@ -53,9 +50,6 @@ public class SyncWebSocketHandler implements Consumer<WsConfig> {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-    // -------------------------------------------------------------------
-    // Dependencias
-    // -------------------------------------------------------------------
     private final EncuestaService encuestaService;
     private final ObjectMapper    mapper;
 
@@ -66,19 +60,12 @@ public class SyncWebSocketHandler implements Consumer<WsConfig> {
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    // -------------------------------------------------------------------
-    // Registro en Javalin 7
-    // -------------------------------------------------------------------
     @Override
     public void accept(WsConfig ws) {
         ws.onMessage(this::onMessage);
         ws.onClose(this::onClose);
         ws.onError(this::onError);
     }
-
-    // -------------------------------------------------------------------
-    // Eventos - VERSIÓN CORREGIDA
-    // -------------------------------------------------------------------
 
     private void onMessage(WsMessageContext ctx) {
         Object sessionKey = ctx.session;

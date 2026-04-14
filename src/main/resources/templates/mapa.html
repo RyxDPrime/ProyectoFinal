@@ -108,7 +108,6 @@
       </div>
     </div>
 
-    <!-- Filtros -->
     <div class="map-filter-bar">
       <label for="filtro-nivel-mapa"></label><select id="filtro-nivel-mapa" onchange="aplicarFiltros()">
       <option value="">Todos los niveles</option>
@@ -122,7 +121,6 @@
       <span class="map-counter" id="map-counter">— puntos</span>
     </div>
 
-    <!-- Mapa -->
     <div id="map"></div>
   </main>
 </div>
@@ -143,7 +141,6 @@
     document.getElementById('nav-admin-section').style.display = '';
   }
 
-  // Mostrar filtro scope para ENCUESTADOR y ADMIN
   if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
     const scopeSelect = document.getElementById('filtro-scope');
     scopeSelect.style.display = '';
@@ -151,29 +148,24 @@
   }
   Auth.aplicarVisibilidadPorRol();
 
-  // Badge pendientes
   const pend = OfflineDB.contarPendientes();
   const badge = document.getElementById('nav-badge-pending');
   badge.textContent = pend;
   badge.className = 'nav-badge' + (pend === 0 ? ' zero' : '');
 
-  // Monitor de conexión
   document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
   document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
 
 
-  // ── Mapa Leaflet ──────────────────────────────────────────────
   const map = L.map('map', { zoomControl: true })
-          .setView([18.4861, -69.9312], 8); // Centro República Dominicana
+          .setView([18.4861, -69.9312], 8);
 
-  // Tile claro compatible con modo light
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd',
     maxZoom: 19
   }).addTo(map);
 
-  // Icono personalizado azul (modo claro)
   const iconoAmbar = L.divIcon({
     className: '',
     html: `<div style="
@@ -207,13 +199,10 @@
   }
 
   function getScopeActual() {
-    // Todos pueden especificar scope mediante el select
     const scopeSelect = document.getElementById('filtro-scope');
     if (scopeSelect.style.display !== 'none') {
-      // Si el select está visible, usar su valor
       return scopeSelect.value || 'all';
     }
-    // VISUALIZADOR no tiene select, siempre retorna 'all'
     return 'all';
   }
 
@@ -231,7 +220,6 @@
   }
 
   function renderMarcadores(encuestas) {
-    // Limpiar marcadores anteriores
     markers.forEach(m => map.removeLayer(m));
     markers = [];
 
@@ -263,7 +251,6 @@
       markers.push(marker);
     });
 
-    // Ajustar vista a los marcadores
     if (markers.length > 0) {
       const group = L.featureGroup(markers);
       map.fitBounds(group.getBounds().pad(0.15));
@@ -279,17 +266,7 @@
 
   function manejarEventoRealtime(msg) {
     console.log('[WS] Evento recibido (mapa):', msg);
-    // Actualización automática deshabilitada para evitar que se reestablezca el zoom
-    // El usuario puede hacer clic en "Actualizar" manualmente cuando desee
   }
-
-  // Suscripción deshabilitada: no actualizar automáticamente el mapa
-  // RealtimeWS.suscribirEncuestas(manejarEventoRealtime);
-
-  // Refresh automático deshabilitado para evitar que el zoom se reestablezca
-  // refreshTimer = setInterval(() => {
-  //   cargarYRenderizar();
-  // }, 7000);
 
   window.addEventListener('beforeunload', () => RealtimeWS.detener());
   window.addEventListener('beforeunload', () => {

@@ -42,7 +42,6 @@
       font-family: var(--font-mono), monospace;
       font-size: 0.78rem;
     }
-    /* Indicador de fortaleza de contraseña */
     .pwd-strength {
       display: flex;
       gap: 4px;
@@ -151,20 +150,16 @@
             new Date().toLocaleTimeString('es-DO');
   }, 1000);
 
-  // Evita depender del simbolo global `event` en handlers inline.
   document.getElementById('form-registro')?.addEventListener('submit', handleRegistro);
 
-  // Si ya tiene sesion activa, redirigir
   if (Auth.estaAutenticado()) {
     window.location.href = Auth.getRutaInicioPorRol();
   }
 
-  // ── Indicador de fortaleza de contraseña ──────────────────────
   function evaluarContrasena(pwd) {
     const bars  = [1,2,3,4].map(i => document.getElementById('bar' + i));
     const label = document.getElementById('pwd-label');
 
-    // Limpiar
     bars.forEach(b => b.className = 'pwd-bar');
 
     if (!pwd) { label.textContent = 'Ingresa una contraseña'; return; }
@@ -189,7 +184,6 @@
     label.style.color = nivel.color;
   }
 
-  // ── Registro ──────────────────────────────────────────────────
   async function handleRegistro(e) {
     e.preventDefault();
 
@@ -198,7 +192,6 @@
     const errEmail  = document.getElementById('err-email');
     const errPwd2   = document.getElementById('err-pwd2');
 
-    // Limpiar errores previos
     [globalErr, errEmail, errPwd2].forEach(el => {
       el.textContent = '';
       el.classList.remove('visible');
@@ -210,7 +203,6 @@
     const pwd2     = document.getElementById('reg-pwd2').value;
     const rol      = document.getElementById('reg-rol').value;
 
-    // Validaciones cliente
     if (pwd !== pwd2) {
       errPwd2.textContent = 'Las contraseñas no coinciden';
       errPwd2.classList.add('visible');
@@ -228,7 +220,6 @@
     try {
       await API.post('/api/auth/registro', { nombre, email, password: pwd, rol });
       toast('Cuenta creada correctamente. Ahora inicia sesión.', 'success');
-      // Pequeña espera para que el toast sea visible antes de redirigir
       setTimeout(() => {
         window.location.href = '/login';
       }, 1800);

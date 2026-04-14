@@ -45,9 +45,6 @@ public class EncuestaController {
         this.encuestaService = encuestaService;
     }
 
-    // -------------------------------------------------------------------
-    // GET /api/encuestas
-    // -------------------------------------------------------------------
     public void listarTodas(Context ctx) {
         DecodedJWT jwt;
         try {
@@ -65,22 +62,15 @@ public class EncuestaController {
         if ("mine".equals(scope)) {
             encuestas = encuestaService.listarPorUsuario(usuarioId);
         } else if (quiereTodos) {
-            // Permite "all" para cualquier ADMIN o VISUALIZADOR
-            // Los ENCUESTADORES pueden pedir "all" pero el frontend no les lo ofrece por defecto
             encuestas = encuestaService.listarTodas();
         } else if (esPrivilegiado(jwt)) {
-            // Si no especifica scope, los privilegiados ven todas
             encuestas = encuestaService.listarTodas();
         } else {
-            // Los ENCUESTADORES sin scope especificado ven sus propias encuestas
             encuestas = encuestaService.listarPorUsuario(usuarioId);
         }
         ctx.status(HttpStatus.OK).json(encuestas);
     }
 
-    // -------------------------------------------------------------------
-    // GET /api/encuestas/usuario/{id}
-    // -------------------------------------------------------------------
     public void listarPorUsuario(Context ctx) {
         DecodedJWT jwt;
         try {
@@ -100,9 +90,6 @@ public class EncuestaController {
         ctx.status(HttpStatus.OK).json(encuestas);
     }
 
-    // -------------------------------------------------------------------
-    // GET /api/encuestas/{id}
-    // -------------------------------------------------------------------
     public void buscarPorId(Context ctx) {
         DecodedJWT jwt;
         try {
@@ -126,9 +113,6 @@ public class EncuestaController {
                 );
     }
 
-    // -------------------------------------------------------------------
-    // POST /api/encuestas
-    // -------------------------------------------------------------------
     public void crear(Context ctx) {
         var body = ctx.bodyAsClass(EncuestaRequest.class);
 
@@ -137,7 +121,6 @@ public class EncuestaController {
             return;
         }
 
-        // Extraer usuario del token
         DecodedJWT jwt;
         try {
             jwt = obtenerJwt(ctx);
@@ -146,7 +129,7 @@ public class EncuestaController {
             return;
         }
         String usuarioId     = JwtUtil.extraerUsuarioId(jwt);
-        String usuarioNombre = JwtUtil.extraerEmail(jwt); // se usa email como nombre en el token
+        String usuarioNombre = JwtUtil.extraerEmail(jwt);
 
         NivelEscolar nivel;
         try {
@@ -176,9 +159,6 @@ public class EncuestaController {
         ctx.status(HttpStatus.CREATED).json(creada);
     }
 
-    // -------------------------------------------------------------------
-    // PUT /api/encuestas/{id}
-    // -------------------------------------------------------------------
     public void actualizar(Context ctx) {
         String id   = ctx.pathParam("id");
         var    body = ctx.bodyAsClass(EncuestaRequest.class);
@@ -230,9 +210,6 @@ public class EncuestaController {
         }
     }
 
-    // -------------------------------------------------------------------
-    // DELETE /api/encuestas/{id}
-    // -------------------------------------------------------------------
     public void eliminar(Context ctx) {
         String id        = ctx.pathParam("id");
         DecodedJWT jwt;

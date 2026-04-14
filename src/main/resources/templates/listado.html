@@ -87,7 +87,6 @@
       </div>
     </div>
 
-    <!-- Tabla -->
     <div class="card" style="padding:0; overflow:hidden">
       <div id="tabla-container">
         <div class="empty-state">
@@ -100,7 +99,6 @@
   </main>
 </div>
 
-<!-- Modal detalle -->
 <div class="modal-overlay" id="modal-detalle">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
@@ -119,8 +117,6 @@
 
 <script src="/js/app.js"></script>
 <script>
-  console.log('[listado] normalizarIdMongo disponible:', typeof normalizarIdMongo);
-
   Auth.requerirAuth();
   Auth.requerirAccesoRuta();
 
@@ -133,14 +129,12 @@
   }
   Auth.aplicarVisibilidadPorRol();
 
-  // Mostrar filtro scope para ENCUESTADOR y ADMIN
   if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
     const scopeSelect = document.getElementById('filtro-scope');
     scopeSelect.style.display = '';
     scopeSelect.value = usuario.rol === 'ENCUESTADOR' ? 'mine' : 'all';
   }
 
-  // Solo ADMIN puede eliminar
   if (usuario.rol !== 'ADMIN') {
     document.getElementById('btn-eliminar-modal').style.display = 'none';
   }
@@ -210,13 +204,10 @@
   }
 
   function getScopeActual() {
-    // Todos pueden especificar scope mediante el select
     const scopeSelect = document.getElementById('filtro-scope');
     if (scopeSelect.style.display !== 'none') {
-      // Si el select está visible, usar su valor
       return scopeSelect.value || 'all';
     }
-    // VISUALIZADOR no tiene select, siempre retorna 'all'
     return 'all';
   }
 
@@ -343,18 +334,7 @@
   async function eliminarDesdeModal() {
     if (!encuestaSeleccionada) return;
 
-    // DEBUG COMPLETO: inspeccionar estructura real del id antes de eliminar
-    console.log('=== DEBUG eliminarDesdeModal ===');
-    console.log('encuestaSeleccionada:', encuestaSeleccionada);
-    console.log('Tipo:', typeof encuestaSeleccionada);
-    console.log('_id:', encuestaSeleccionada._id);
-    console.log('Tipo de _id:', typeof encuestaSeleccionada._id);
-    console.log('id:', encuestaSeleccionada.id);
-    console.log('JSON.stringify(_id):', JSON.stringify(encuestaSeleccionada._id));
-
     const id = normalizarIdMongo(encuestaSeleccionada._id || encuestaSeleccionada.id);
-    console.log('ID normalizado:', id);
-    console.log('================================');
 
     if (!id || id === '[object Object]') { toast('ID no disponible', 'error'); return; }
     if (!confirm('¿Eliminar permanentemente esta encuesta?')) return;
@@ -391,17 +371,14 @@
     }
   }
 
-  // Monitor de conexión
   document.getElementById('conn-dot').classList.toggle('offline', !navigator.onLine);
   document.getElementById('conn-label').textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
 
-  // Badge pendientes
   const pend = OfflineDB.contarPendientes();
   const badge = document.getElementById('nav-badge-pending');
   badge.textContent = pend;
   badge.className = 'nav-badge' + (pend === 0 ? ' zero' : '');
 
-  // Mobile menu
   if (window.innerWidth < 768) {
     document.getElementById('menu-toggle').style.display = 'flex';
   }

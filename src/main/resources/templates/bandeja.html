@@ -9,8 +9,6 @@
 <body>
 
 <div class="app-layout">
-
-  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-brand">
       <div class="accent-dot"></div>
@@ -29,8 +27,6 @@
       <button class="btn btn-ghost btn-sm" id="menu-toggle" onclick="toggleMenu()" style="display:none;padding:4px 8px">☰</button>
     </div>
   </header>
-
-  <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
     <div class="nav-section-label" data-feature="captura">Captura</div>
     <div class="nav-section" data-feature="captura">
@@ -68,7 +64,6 @@
     </div>
   </nav>
 
-  <!-- Contenido -->
   <main class="main-content page-enter">
     <div class="page-header">
       <div class="page-header-left">
@@ -84,7 +79,6 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid" style="margin-bottom:24px">
       <div class="stat-card">
         <div class="stat-label">Pendientes</div>
@@ -96,17 +90,15 @@
       </div>
     </div>
 
-    <!-- Lista -->
     <div id="bandeja-list"></div>
 
   </main>
 </div>
 
-<!-- Modal editar -->
 <div class="modal-overlay" id="modal-editar">
   <div class="modal">
     <div class="modal-header">
-      <h3>// Editar encuesta</h3>
+      <h3>Editar encuesta</h3>
       <button class="btn btn-ghost btn-sm" onclick="cerrarModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -178,7 +170,7 @@
         </div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="capturarGPSEdicion()">📍 Capturar GPS otra vez</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="capturarGPSEdicion()">Capturar GPS otra vez</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="limpiarGPSedicion()">Quitar coordenadas</button>
       </div>
 
@@ -191,7 +183,7 @@
         <div class="form-hint">Si no necesitas cambiar la foto, puedes dejar el valor actual.</div>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="abrirCamaraEdicion()">📷 Tomar otra foto</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="abrirCamaraEdicion()">Tomar otra foto</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="limpiarFotoEdicion()">Quitar foto</button>
       </div>
       <div id="edit-foto-preview" style="display:none; margin-top:12px">
@@ -205,7 +197,6 @@
   </div>
 </div>
 
-<!-- Modal cámara para editar -->
 <div class="modal-overlay" id="modal-camara-edicion" style="display:none">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
@@ -216,8 +207,8 @@
       <video id="camera-video-edicion" autoplay playsinline></video>
       <div class="camera-actions">
         <button class="btn btn-ghost" onclick="cerrarCamaraEdicion()">Cancelar</button>
-        <button class="btn btn-primary" onclick="tomarFotoEdicion()">📷 Capturar</button>
-        <button class="btn btn-secondary btn-sm" onclick="usarArchivoEdicion()">📁 Desde galería</button>
+        <button class="btn btn-primary" onclick="tomarFotoEdicion()">Capturar</button>
+        <button class="btn btn-secondary btn-sm" onclick="usarArchivoEdicion()">Desde galería</button>
       </div>
     </div>
     <canvas id="camera-canvas-edicion" style="display:none"></canvas>
@@ -226,7 +217,6 @@
 
 <input type="file" id="file-input-edicion" accept="image/*" capture="environment" style="display:none" />
 
-<!-- Toast -->
 <div class="toast-container" id="toast-container"></div>
 
 <script src="/js/app.js"></script>
@@ -561,7 +551,6 @@
     }
   }
 
-   // Monitor de conexión
    function actualizarConexion() {
      const online = navigator.onLine;
      document.getElementById('conn-dot').classList.toggle('offline', !online);

@@ -5,13 +5,10 @@
  *   - Recursos estáticos (CSS, JS, fonts): Cache First
  *   - API /api/*: Network First, sin cachear
  *   - Páginas HTML: Network First con fallback a caché
- *
- * Requerimiento 8 — funcionamiento offline con sincronización posterior
  */
 
 const CACHE_NAME = 'encuesta-pucmm-v2';
 
-// Recursos estáticos que se pre-cachean al instalar
 const PRECACHE_ASSETS = [
     '/login',
     '/registro',
@@ -19,7 +16,6 @@ const PRECACHE_ASSETS = [
     '/js/app.js',
 ];
 
-// ── Instalación — pre-cachear todos los recursos estáticos ────────
 self.addEventListener('install', event => {
     console.log('[SW] Instalando...');
     event.waitUntil(
@@ -37,7 +33,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// ── Activación — limpiar cachés viejos ────────────────────────────
 self.addEventListener('activate', event => {
     console.log('[SW] Activando...');
     event.waitUntil(
@@ -54,31 +49,24 @@ self.addEventListener('activate', event => {
     );
 });
 
-// ── Fetch — interceptar peticiones ────────────────────────────────
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // No interceptar WebSockets
     if (request.url.startsWith('ws://') || request.url.startsWith('wss://')) return;
 
-    // Peticiones de API: Network First, sin cachear respuestas
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(networkOnly(request));
         return;
     }
 
-    // Recursos externos (Leaflet, Google Fonts): Cache First
     if (!url.hostname.includes(self.location.hostname)) {
         event.respondWith(cacheFirst(request));
         return;
     }
 
-    // Todo lo demás (HTML, CSS, JS): Network First con fallback a caché
     event.respondWith(networkFirst(request));
 });
-
-// ── Estrategias ───────────────────────────────────────────────────
 
 /**
  * Network First: intenta la red, si falla usa caché.

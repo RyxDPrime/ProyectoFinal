@@ -380,7 +380,6 @@
        byId('menu-toggle').style.display = 'flex';
      }
 
-     // Mostrar filtro scope para ENCUESTADOR y ADMIN
      if (usuario.rol === 'ENCUESTADOR' || usuario.rol === 'ADMIN') {
        byId('filtro-scope').style.display = '';
        byId('filtro-scope').value = usuario.rol === 'ENCUESTADOR' ? 'mine' : 'all';
@@ -422,13 +421,10 @@
   }
 
   function getScopeActual() {
-    // Todos pueden especificar scope mediante el select
     const scopeSelect = byId('filtro-scope');
     if (scopeSelect.style.display !== 'none') {
-      // Si el select está visible, usar su valor
       return scopeSelect.value || 'all';
     }
-    // VISUALIZADOR no tiene select, siempre retorna 'all'
     return 'all';
   }
 
@@ -532,7 +528,7 @@
           <span class="legend-swatch" style="background:${levelColors[idx]}"></span>
           <div class="legend-text">
             <div class="legend-title">${levelLabels[key]}</div>
-            <div class="legend-subtitle">${value} encuesta(s) · ${pct}%</div>
+            <div class="legend-subtitle">${value} encuesta(s) - ${pct}%</div>
           </div>
         </div>`;
     }).join('');
@@ -574,7 +570,6 @@
      byId('sidebar').classList.toggle('open');
    }
 
-   // La actualización del dashboard queda manual para evitar reinicios frecuentes del gráfico.
 </script>
 </body>
 </html>

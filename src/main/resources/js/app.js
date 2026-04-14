@@ -11,9 +11,6 @@
 
 'use strict';
 
-// ════════════════════════════════════════════════════════════════════
-// Configuración
-// ════════════════════════════════════════════════════════════════════
 const CONFIG = {
     API_BASE: '',             // Vacío = mismo origen donde sirve Javalin
     WS_PATH: '/ws/sync',
@@ -40,9 +37,6 @@ const FEATURE_ACCESS = {
     admin: ['ADMIN'],
 };
 
-// ════════════════════════════════════════════════════════════════════
-// Auth — gestión de sesión con JWT en sessionStorage
-// ════════════════════════════════════════════════════════════════════
 const Auth = {
     /**
      * Realiza login contra la API y persiste el token en sessionStorage.
@@ -57,7 +51,6 @@ const Auth = {
         const data = await res.json();
         if (!res.ok) throw new Error(data.mensaje || 'Error de autenticación');
 
-        // Persistir solo durante la sesión del navegador/pestaña.
         sessionStorage.setItem(CONFIG.STORAGE_KEY_TOKEN,   data.token);
         sessionStorage.setItem(CONFIG.STORAGE_KEY_USUARIO, JSON.stringify({
             usuarioId: data.usuarioId,
@@ -77,7 +70,6 @@ const Auth = {
         try {
             sessionStorage.removeItem('enc_cache');
         } catch {}
-        // replace() evita volver a una vista protegida con el botón "atrás".
         window.location.replace('/login');
     },
 
@@ -93,17 +85,12 @@ const Auth = {
     estaAutenticado: function() {
         const token = this.getToken();
         if (!token) return false;
-        // Verificación básica de expiración sin librería
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             return payload.exp * 1000 > Date.now();
         } catch { return false; }
     },
 
-    /**
-     * Guard de autenticación: si no hay sesión válida, redirige al login.
-     * Llamar al inicio de cada página protegida.
-     */
     requerirAuth: function() {
         if (!this.estaAutenticado()) {
             window.location.href = '/login';
@@ -151,12 +138,8 @@ const Auth = {
     },
 };
 
-// Exponer Auth para uso en handlers inline (onclick="Auth.logout()").
 window.Auth = Auth;
 
-// ════════════════════════════════════════════════════════════════════
-// API — cliente HTTP con JWT automático
-// ════════════════════════════════════════════════════════════════════
 const API = {
     TIMEOUT_MS: 30000,  // 30 segundos de timeout
 
@@ -229,9 +212,6 @@ const API = {
     },
 };
 
-// ════════════════════════════════════════════════════════════════════
-// Utilidad de IDs Mongo — normaliza ObjectId serializados como objeto
-// ════════════════════════════════════════════════════════════════════
 function normalizarIdMongo(valor) {
     if (valor == null) return '';
     if (typeof valor === 'string' || typeof valor === 'number') {
@@ -251,7 +231,6 @@ function normalizarIdMongo(valor) {
             try { return valor.toHexString(); } catch {}
         }
 
-        // Evita resultados inválidos como "[object Object]".
         return '';
     }
 
@@ -279,9 +258,6 @@ function safeImageSrc(valor) {
 
 window.safeImageSrc = safeImageSrc;
 
-// ════════════════════════════════════════════════════════════════════
-// SyncStats — contador persistente de sincronizaciones por usuario/día
-// ════════════════════════════════════════════════════════════════════
 const SyncStats = {
     _hoyClave: function() {
         return new Date().toISOString().slice(0, 10);
@@ -321,9 +297,6 @@ const SyncStats = {
 
 window.SyncStats = SyncStats;
 
-// ════════════════════════════════════════════════════════════════════
-// OfflineDB — IndexedDB para encuestas pendientes
-// ════════════════════════════════════════════════════════════════════
 const OfflineDB = (() => {
     let db = null;
     const PENDIENTES_EVENT = 'enc-pendientes-changed';
@@ -353,7 +326,6 @@ const OfflineDB = (() => {
         });
     }
 
-    // Fallback a localStorage si IndexedDB no está disponible
     const LS_KEY = 'enc_pendientes';
     const usarLS = !window.indexedDB;
 
@@ -408,7 +380,6 @@ const OfflineDB = (() => {
          * Para sincronización async usa obtenerTodasAsync().
          */
         obtenerTodas: function() {
-            // Versión síncrona simplificada usando sessionStorage como caché de lectura
             try {
                 const cached = sessionStorage.getItem('enc_cache');
                 return cached ? JSON.parse(cached) : [];
@@ -423,7 +394,6 @@ const OfflineDB = (() => {
                     const req   = store.getAll();
                     req.onsuccess = () => {
                         const result = req.result || [];
-                        // Actualizar caché de sesión
                         try { sessionStorage.setItem('enc_cache', JSON.stringify(result)); } catch {}
                         resolve(result);
                     };
@@ -432,9 +402,6 @@ const OfflineDB = (() => {
             });
         },
 
-        /**
-         * Elimina un registro por su índice local.
-         */
         eliminar: function(idx) {
             abrirDB().then(base => {
                 const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
@@ -494,9 +461,6 @@ const OfflineDB = (() => {
             }).catch(console.error);
         },
 
-        /**
-         * Cuenta cuántos registros hay pendientes.
-         */
         contarPendientes: function() {
             try {
                 const cached = sessionStorage.getItem('enc_cache');
@@ -504,9 +468,6 @@ const OfflineDB = (() => {
             } catch { return 0; }
         },
 
-        /**
-         * Elimina todos los registros (llamado tras sincronización exitosa).
-         */
         limpiarSincronizadas: function() {
             abrirDB().then(base => {
                 const tx    = base.transaction(CONFIG.STORE_PENDIENTES, 'readwrite');
@@ -520,9 +481,6 @@ const OfflineDB = (() => {
             this.obtenerTodasAsync().catch(console.error);
         },
 
-        /**
-         * Inicializa la caché de sesión al cargar la página.
-         */
         inicializar: async function() {
             try {
                 await this.obtenerTodasAsync();
@@ -534,14 +492,10 @@ const OfflineDB = (() => {
     };
 })();
 
-// Inicializar caché al cargar la página
 if (OfflineDB.inicializar) {
     OfflineDB.inicializar();
 }
 
-// ════════════════════════════════════════════════════════════════════
-// SyncWS — Sincronización via WebSocket (req. 8)
-// ════════════════════════════════════════════════════════════════════
 const SyncWS = {
     sincronizar: async function(encuestas) {
         const token = Auth.getToken();
@@ -566,7 +520,7 @@ const SyncWS = {
         return await res.json();
     }
 };
-// Cliente WebSocket para eventos realtime de encuestas (sincronización y CRUD)
+
 const RealtimeWS = (() => {
     const FORCE_POLLING_ONLY = true;
     let ws = null;
@@ -672,9 +626,6 @@ const RealtimeWS = (() => {
 window.SyncWS = SyncWS;
 window.RealtimeWS = RealtimeWS;
 
-// ════════════════════════════════════════════════════════════════════
-// toast() — Notificaciones visuales
-// ════════════════════════════════════════════════════════════════════
 function toast(mensaje, tipo = 'info', duracion = 4000) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -695,9 +646,6 @@ function toast(mensaje, tipo = 'info', duracion = 4000) {
     }, duracion);
 }
 
-// ════════════════════════════════════════════════════════════════════
-// Service Worker — registro (el sw.js maneja la lógica offline)
-// ════════════════════════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/js/sw.js')
@@ -706,15 +654,11 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-// ════════════════════════════════════════════════════════════════════
-// Mobile Menu — Global initialization
-// ════════════════════════════════════════════════════════════════════
 (function() {
     function getSidebar() {
         return document.getElementById('sidebar') || document.querySelector('.sidebar');
     }
 
-    // Función global para toggle menu
     window.toggleMenu = function() {
         const sidebar = getSidebar();
         if (sidebar) {
@@ -722,7 +666,6 @@ if ('serviceWorker' in navigator) {
         }
     };
 
-    // Mostrar/ocultar botón hamburguesa según ancho
     function actualizarVisibilidadMenu() {
         const menuToggle = document.getElementById('menu-toggle');
         if (menuToggle) {
@@ -730,7 +673,6 @@ if ('serviceWorker' in navigator) {
         }
     }
 
-    // Cerrar sidebar al hacer click en un link
     function cerrarMenuAlClickEnLink() {
         const sidebar = getSidebar();
         const navLinks = document.querySelectorAll('.nav-link');
@@ -743,7 +685,6 @@ if ('serviceWorker' in navigator) {
         });
     }
 
-    // Cerrar sidebar al hacer click fuera (en el overlay)
     function cerrarMenuAlClickFuera() {
         const sidebar = getSidebar();
 
@@ -756,17 +697,14 @@ if ('serviceWorker' in navigator) {
         }
     }
 
-    // Inicializar en DOMContentLoaded
     document.addEventListener('DOMContentLoaded', () => {
         actualizarVisibilidadMenu();
         cerrarMenuAlClickEnLink();
         cerrarMenuAlClickFuera();
     });
 
-    // Actualizar al redimensionar
     window.addEventListener('resize', actualizarVisibilidadMenu);
 
-    // Cerrar menú al presionar ESC
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             const sidebar = getSidebar();

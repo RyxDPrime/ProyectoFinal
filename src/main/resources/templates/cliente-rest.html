@@ -139,19 +139,18 @@
       gap: 8px;
     }
 
-    .section-title::before { content: '//'; opacity: 0.6; }
+    .section-title::before { content: ''; opacity: 0.6; }
   </style>
 </head>
 <body style="background:var(--bg)">
 
 <div class="rest-layout">
 
-  <!-- Panel izquierdo: autenticación + info -->
   <aside class="rest-panel">
 
     <div>
       <div style="font-family:var(--font-mono), monospace;font-size:0.65rem;color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px">
-        // Cliente REST
+        Cliente REST
       </div>
       <h2 style="font-size:1.1rem;margin-bottom:4px">API Explorer</h2>
       <p style="font-size:0.78rem">Interfaz para probar la integración con JWT y CRUD completo.</p>
@@ -159,7 +158,6 @@
 
     <hr class="divider" style="margin:0" />
 
-    <!-- Autenticación -->
     <div>
       <div class="section-title">Autenticación</div>
       <div class="form-group">
@@ -176,7 +174,6 @@
       </button>
     </div>
 
-    <!-- Token activo -->
     <div>
       <div class="section-title">Token JWT</div>
       <div class="token-display" id="token-display">Sin token — autentícate primero</div>
@@ -188,7 +185,6 @@
 
     <hr class="divider" style="margin:0" />
 
-    <!-- Usuario activo -->
     <div id="usuario-info" style="display:none">
       <div class="section-title">Sesión activa</div>
       <div class="card" style="padding:12px">
@@ -199,12 +195,11 @@
     </div>
 
     <div style="margin-top:auto">
-      <a href="/encuesta" class="btn btn-ghost btn-full btn-sm">← Volver al sistema</a>
+      <a href="/encuesta" class="btn btn-ghost btn-full btn-sm">Volver al sistema</a>
     </div>
 
   </aside>
 
-  <!-- Panel derecho: endpoints -->
   <main class="rest-main">
     <div class="page-header">
       <div class="page-header-left">
@@ -213,21 +208,20 @@
       </div>
     </div>
 
-    <!-- AUTH -->
     <div class="section-title" style="margin-bottom:16px">Auth</div>
 
     <div class="endpoint-block">
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-post">POST</span>
         <span class="endpoint-path">/api/auth/login</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="body-login">Body JSON</label>
           <textarea id="body-login" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:80px">{ "email": "usuario@pucmm.edu.do", "password": "TU_PASSWORD" }</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/auth/login','body-login','res-login',false)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/auth/login','body-login','res-login',false)">Ejecutar</button>
         <div id="res-login-wrap" style="margin-top:12px;display:none">
           <div id="res-login-status"></div>
           <div class="response-box" id="res-login">—</div>
@@ -239,14 +233,14 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-post">POST</span>
         <span class="endpoint-path">/api/auth/registro</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="body-registro">Body JSON</label>
           <textarea id="body-registro" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:100px">{ "nombre": "Nuevo Usuario", "email": "nuevo@test.com", "password": "Test1234!", "rol": "ENCUESTADOR" }</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/auth/registro','body-registro','res-registro',false)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/auth/registro','body-registro','res-registro',false)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-registro-status"></div>
           <div class="response-box" id="res-registro">—</div>
@@ -254,17 +248,16 @@
       </div>
     </div>
 
-    <!-- ENCUESTAS -->
     <div class="section-title" style="margin:24px 0 16px">Encuestas</div>
 
     <div class="endpoint-block">
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-get">GET</span>
         <span class="endpoint-path">/api/encuestas</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('GET','/api/encuestas',null,'res-get-all',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('GET','/api/encuestas',null,'res-get-all',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-get-all-status"></div>
           <div class="response-box" id="res-get-all">—</div>
@@ -276,7 +269,7 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-get">GET</span>
         <span class="endpoint-path">/api/encuestas/usuario/{id}</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
@@ -284,7 +277,7 @@
           <input type="text" id="param-uid" placeholder="ObjectId del usuario" />
           <div class="form-hint">Se autocompleta con el ID de la sesión activa</div>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutarConParam('GET','/api/encuestas/usuario/','param-uid','res-by-user',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutarConParam('GET','/api/encuestas/usuario/','param-uid','res-by-user',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-by-user-status"></div>
           <div class="response-box" id="res-by-user">—</div>
@@ -296,14 +289,14 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-get">GET</span>
         <span class="endpoint-path">/api/encuestas/{id}</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="param-enc-id-get">ID de encuesta</label>
           <input type="text" id="param-enc-id-get" placeholder="ObjectId de la encuesta" />
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutarConParam('GET','/api/encuestas/','param-enc-id-get','res-get-one',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutarConParam('GET','/api/encuestas/','param-enc-id-get','res-get-one',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-get-one-status"></div>
           <div class="response-box" id="res-get-one">—</div>
@@ -315,14 +308,14 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-post">POST</span>
         <span class="endpoint-path">/api/encuestas</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="body-crear">Body JSON</label>
           <textarea id="body-crear" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:140px">{ "nombre": "María González", "sector": "Los Jardines, Santiago", "nivelEscolar": "GRADO_UNIVERSITARIO", "latitud": 19.4517, "longitud": -70.6970, "fotoBase64": null }</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/encuestas','body-crear','res-crear',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/encuestas','body-crear','res-crear',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-crear-status"></div>
           <div class="response-box" id="res-crear">—</div>
@@ -334,7 +327,7 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-put">PUT</span>
         <span class="endpoint-path">/api/encuestas/{id}</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
@@ -345,7 +338,7 @@
           <label for="body-put">Body JSON</label>
           <textarea id="body-put" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:120px">{ "nombre": "María González (editado)", "sector": "Los Jardines, Santiago", "nivelEscolar": "POSTGRADO", "latitud": 19.4517, "longitud": -70.6970 }</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutarPut()">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutarPut()">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-put-status"></div>
           <div class="response-box" id="res-put">—</div>
@@ -357,14 +350,14 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-delete">DEL</span>
         <span class="endpoint-path">/api/encuestas/{id}</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="param-enc-id-del">ID de encuesta</label>
           <input type="text" id="param-enc-id-del" placeholder="ObjectId a eliminar" />
         </div>
-        <button class="btn btn-danger btn-sm" onclick="ejecutarConParam('DELETE','/api/encuestas/','param-enc-id-del','res-delete',true)">▶ Ejecutar</button>
+        <button class="btn btn-danger btn-sm" onclick="ejecutarConParam('DELETE','/api/encuestas/','param-enc-id-del','res-delete',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-delete-status"></div>
           <div class="response-box" id="res-delete">—</div>
@@ -372,19 +365,18 @@
       </div>
     </div>
 
-    <!-- POST SYNC -->
     <div class="endpoint-block">
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-post">POST</span>
         <span class="endpoint-path">/api/encuestas/sync</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
           <label for="body-sync">Body JSON (array de encuestas)</label>
           <textarea id="body-sync" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:140px">[{ "nombre": "Test Offline", "sector": "Santiago Centro", "nivelEscolar": "BASICO", "latitud": 19.45, "longitud": -70.69, "sincronizado": false }]</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/encuestas/sync','body-sync','res-sync',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('POST','/api/encuestas/sync','body-sync','res-sync',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-sync-status"></div>
           <div class="response-box" id="res-sync">—</div>
@@ -392,17 +384,16 @@
       </div>
     </div>
 
-    <!-- USUARIOS -->
     <div class="section-title" style="margin:24px 0 16px">Usuarios (solo ADMIN)</div>
 
     <div class="endpoint-block">
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-get">GET</span>
         <span class="endpoint-path">/api/usuarios</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
-        <button class="btn btn-secondary btn-sm" onclick="ejecutar('GET','/api/usuarios',null,'res-usuarios',true)">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutar('GET','/api/usuarios',null,'res-usuarios',true)">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-usuarios-status"></div>
           <div class="response-box" id="res-usuarios">—</div>
@@ -414,7 +405,7 @@
       <div class="endpoint-header" onclick="toggle(this)">
         <span class="method-tag method-put">PUT</span>
         <span class="endpoint-path">/api/usuarios/{id}/rol</span>
-        <span style="font-size:0.7rem;color:var(--text-faint)">↕</span>
+        <span style="font-size:0.7rem;color:var(--text-faint)">Toggle</span>
       </div>
       <div class="endpoint-body">
         <div class="form-group">
@@ -425,7 +416,7 @@
           <label for="body-rol">Body JSON</label>
           <textarea id="body-rol" style="font-family:var(--font-mono), monospace;font-size:0.78rem;height:60px">{ "rol": "VISUALIZADOR" }</textarea>
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="ejecutarRol()">▶ Ejecutar</button>
+        <button class="btn btn-secondary btn-sm" onclick="ejecutarRol()">Ejecutar</button>
         <div style="margin-top:12px">
           <div id="res-rol-status"></div>
           <div class="response-box" id="res-rol">—</div>
@@ -443,7 +434,6 @@
   let tokenActivo = null;
   let usuarioActivo = null;
 
-  // Si ya hay sesión, pre-cargar token
   if (Auth.estaAutenticado()) {
     tokenActivo  = Auth.getToken();
     usuarioActivo = Auth.getUsuario();
@@ -506,14 +496,12 @@
     toast('Token copiado', 'info');
   }
 
-  // ── Toggle acordeón ────────────────────────────────────────────
   function toggle(header) {
     const body = header.nextElementSibling;
     const open = body.classList.toggle('open');
-    header.querySelector('span:last-child').textContent = open ? '↑' : '↕';
+    header.querySelector('span:last-child').textContent = open ? 'Hide' : 'Toggle';
   }
 
-  // ── Ejecutores ─────────────────────────────────────────────────
   async function ejecutar(method, path, bodyId, resId, conToken) {
     const statusEl = document.getElementById(resId + '-status');
     const resEl    = document.getElementById(resId);
