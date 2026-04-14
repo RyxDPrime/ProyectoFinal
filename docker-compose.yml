@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -11,8 +9,8 @@ services:
       - "${APP_PORT:-8000}:8000"
     environment:
       PORT: ${PORT:-8000}
-      MONGO_URI: ${MONGO_URI:?Error: MONGO_URI no definida en .env}
-      JWT_SECRET: ${JWT_SECRET:?Error: JWT_SECRET no definida en .env}
+      MONGO_URI: '${MONGO_URI:?Error: MONGO_URI no definida en .env}'
+      JWT_SECRET: '${JWT_SECRET:?Error: JWT_SECRET no definida en .env}'
       ENV: ${ENV:-production}
 
     networks:
