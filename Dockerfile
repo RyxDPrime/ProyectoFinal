@@ -11,7 +11,7 @@ RUN chmod +x gradlew && ./gradlew --no-daemon dependencies || true
 
 # Luego copiamos el código fuente y compilamos el JAR final.
 COPY src ./src
-RUN ./gradlew --no-daemon clean jar -x test
+RUN ./gradlew --no-daemon clean shadowJar -x test
 
 FROM eclipse-temurin:25-jre-jammy AS runtime
 
@@ -21,7 +21,7 @@ ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
 
 RUN useradd --system --uid 10001 --create-home --home-dir /app appuser
 
-COPY --from=build --chown=appuser:appuser /workspace/build/libs/*.jar /app/app.jar
+COPY --from=build --chown=appuser:appuser /workspace/build/libs/proyecto_final-1.0.0.jar /app/app.jar
 
 USER appuser
 
